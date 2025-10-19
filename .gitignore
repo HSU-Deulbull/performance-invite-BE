@@ -21,6 +21,7 @@ out/
 target/
 bin/
 classes/
+!gradle/wrapper/gradle-wrapper.jar
 
 # ---- Logs / tmp ----
 logs/
