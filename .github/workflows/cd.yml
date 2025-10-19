@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  IMAGE: ${{ secrets.DOCKER_USERNAME }}/deulbull}
+  IMAGE: ${{ secrets.DOCKER_USERNAME }}/deulbull
 
 jobs:
   deploy:
