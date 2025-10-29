@@ -1,7 +1,7 @@
 package com.deulbull.performance.domain.band.entity;
 
 import com.deulbull.performance.domain.band.entity.enums.SessionType;
-import com.deulbull.performance.domain.setlist.entity.Setlist;
+import com.deulbull.performance.domain.performance.entity.PerformanceSong;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +21,7 @@ public class BandSession {
 
     @ManyToOne
     @JoinColumn(name = "performance_song_id")
-    private Setlist setlist; // 공연별 곡 정보
+    private PerformanceSong performanceSong; // 공연별 곡 정보
 
     @ManyToOne
     @JoinColumn(name = "band_id")

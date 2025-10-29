@@ -1,6 +1,6 @@
-package com.deulbull.performance.domain.performance.entity;
+package com.deulbull.performance.domain.band.entity;
 
-import com.deulbull.performance.domain.band.entity.Band;
+import com.deulbull.performance.domain.performance.entity.Performance;
 import jakarta.persistence.*;
 import lombok.*;
 
