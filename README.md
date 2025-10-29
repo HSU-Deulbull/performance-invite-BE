@@ -2,7 +2,7 @@
 1. issue 만들기
 2. issue 번호를 참고해 branch 만들기
 - (주의) **develop branch에서 git pull 을 한 후**, 새로운 branch를 만들어야 함
-- branch 이름은 '본인이름/#이슈번호' 사용
+- branch 이름은 '유형/#이슈번호-본인이름' 사용
 3. 새로 만든 branch에서 작업 진행
 4. git add, git commit(아래 convention 참고) 후 develop branch에 PR 날리기
 5. test 통과 시 merge
