@@ -1,6 +1,6 @@
 package com.deulbull.performance.domain.performance.entity;
 
-import com.deulbull.performance.domain.performanceSong.entity.PerformanceSong;
+import com.deulbull.performance.domain.setlist.entity.Setlist;
 import com.deulbull.performance.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,5 +32,5 @@ public class Performance extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "current_song_id")
-    private PerformanceSong currentSong; // 현재 진행중인 곡
+    private Setlist currentSong; // 현재 진행중인 곡
 }

@@ -1,4 +1,4 @@
-package com.deulbull.performance.domain.performanceSong.entity;
+package com.deulbull.performance.domain.setlist.entity;
 
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.song.entity.Song;
@@ -13,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PerformanceSong extends BaseEntity {
+public class Setlist extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
