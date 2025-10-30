@@ -5,6 +5,7 @@ import com.deulbull.performance.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -17,17 +18,18 @@ public class Performance extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String websiteName; // 웹사이트 이름
+    private String websiteDescription; // 웹사이트 설명
     private String title;
     private String subtitle;
     private String description;
     private String location; // 주소 (ex. 서울 서대문구 연세로5다길 10 지하1층)
     private String venue; // 공연장 이름 (ex. 신촌 몽향)
-    private LocalTime time;
-    private LocalDate date;
-    private Integer preSaleFee;   // 사전예매 가격
-    private Integer onSiteFee;    // 현장예매 가격
-    private String posterUrl;
+    private LocalDateTime dateTime;
+    private Integer preSaleFee; // 사전예매 가격
+    private Integer onSiteFee; // 현장예매 가격
+    private String posterFrontUrl; // 포스터 앞면 이미지 URL
+    private String posterBackUrl;  // 포스터 뒷면 이미지 URL
     private String openchatUrl;
 
     @ManyToOne

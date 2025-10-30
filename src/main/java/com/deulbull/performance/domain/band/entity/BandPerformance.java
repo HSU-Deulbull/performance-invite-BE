@@ -23,4 +23,5 @@ public class BandPerformance {
     @ManyToOne
     @JoinColumn(name = "performance_id")
     private Performance performance;
+
 }
