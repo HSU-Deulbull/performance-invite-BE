@@ -56,7 +56,7 @@ public class PerformanceServiceImpl implements PerformanceService {
                 performance.getTitle(),
                 performance.getSubtitle(),
                 performance.getDescription(),
-                null, //TODO: datetime
+                performance.formatDateTimeWithDay(performance.getDateTime()),
                 performance.getVenue(),
                 performance.getOpenchatUrl(),
                 posterUrls,
