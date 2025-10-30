@@ -2,13 +2,13 @@ package com.deulbull.performance.domain.performance.service;
 
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.performance.entity.PerformanceImage;
-import com.deulbull.performance.domain.performance.entity.PerformanceMoreLink;
 import com.deulbull.performance.domain.performance.exception.PerformanceNotFoundException;
 import com.deulbull.performance.domain.performance.repository.PerformanceImageRepository;
 import com.deulbull.performance.domain.performance.repository.PerformanceMoreLinkRepository;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailRequestDto;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailResponseDto;
+import com.deulbull.performance.domain.song.exception.SongNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +41,17 @@ public class PerformanceServiceImpl implements PerformanceService {
         // 현재 곡
         String currentSongTitle = null;
         String currentSongArtist = null;
-        String currentSongAlbumUrl = "";
+        String currentSongAlbumUrl = null;
+
+        if (performance.getCurrentSong() != null) {
+            // 404: 해당 ID의 곡 없음
+            if (performance.getCurrentSong().getSong() == null) {
+                throw new SongNotFoundException();
+            }
+            currentSongTitle = performance.getCurrentSong().getSong().getTitle();
+            currentSongArtist = performance.getCurrentSong().getSong().getArtist();
+            currentSongAlbumUrl = performance.getCurrentSong().getSong().getAlbumImgUrl();
+        }
 
         // morelink 리스트 생성
         List<PerformanceDetailResponseDto.MoreLinkDto> moreLinks = performanceMoreLinkRepository.findAllByPerformanceId(performance.getId())
