@@ -10,7 +10,7 @@ import static com.deulbull.performance.global.constant.StaticValue.*;
 @AllArgsConstructor
 public enum GlobalSuccessCode implements BaseResponseCode {
     SUCCESS_OK( "SUCCESS_200", OK,"호출에 성공하였습니다."),
-    SUCCESS_CREATED("CREATED_201", CREATED, "호출에 성공하였습니다.");
+    SUCCESS_CREATED("CREATED_201", CREATED, "생성에 성공하였습니다.");
 
     private final String code;
     private final int httpStatus;

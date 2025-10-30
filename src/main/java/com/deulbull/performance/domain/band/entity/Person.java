@@ -19,5 +19,5 @@ public class Person extends BaseEntity {
     private String studentId; // 학번
     private String name;
     private String phoneNumber;
-    private String instagramUrl;
+    private String instagramId;
 }
