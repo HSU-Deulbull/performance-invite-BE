@@ -3,6 +3,7 @@ package com.deulbull.performance.domain.performance.service;
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.performance.entity.PerformanceImage;
 import com.deulbull.performance.domain.performance.entity.PerformanceMoreLink;
+import com.deulbull.performance.domain.performance.exception.PerformanceNotFoundException;
 import com.deulbull.performance.domain.performance.repository.PerformanceImageRepository;
 import com.deulbull.performance.domain.performance.repository.PerformanceMoreLinkRepository;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
@@ -24,7 +25,7 @@ public class PerformanceServiceImpl implements PerformanceService {
     @Override
     public PerformanceDetailResponseDto getPerformanceDetail(PerformanceDetailRequestDto dto) {
         Performance performance = performanceRepository.findById(dto.getPerformanceId())
-                .orElseThrow(); //  TODO: 404: 존재하지 않는 공연
+                .orElseThrow(PerformanceNotFoundException::new); // 404: 존재하지 않는 공연
 
         // 공연 이미지 리스트 생성
         List<String> imageUrls = performanceImageRepository.findAllByPerformanceId(performance.getId())
