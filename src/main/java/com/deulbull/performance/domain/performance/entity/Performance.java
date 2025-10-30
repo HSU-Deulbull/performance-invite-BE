@@ -1,5 +1,6 @@
 package com.deulbull.performance.domain.performance.entity;
 
+import com.deulbull.performance.domain.performancesSongs.entity.PerformanceSong;
 import com.deulbull.performance.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

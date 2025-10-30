@@ -1,7 +1,7 @@
 package com.deulbull.performance.domain.band.entity;
 
 import com.deulbull.performance.domain.band.entity.enums.SessionType;
-import com.deulbull.performance.domain.performance.entity.PerformanceSong;
+import com.deulbull.performance.domain.performancesSongs.entity.PerformanceSong;
 import jakarta.persistence.*;
 import lombok.*;
 
