@@ -22,7 +22,6 @@ public class Song extends BaseEntity {
     private LocalDate releaseDate;
     private String genre;
     private String youtubeUrl; // 유튜브 링크
-    private String albumImgUrl; // 앨범 이미지 링크
 
     @Column(columnDefinition = "TEXT")
     private String lyrics; // 가사

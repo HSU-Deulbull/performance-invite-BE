@@ -17,7 +17,7 @@ public class PerformanceImage extends BaseEntity {
 
     private String imageUrl; // 이미지 URL
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "performance_id")
     private Performance performance;
 }

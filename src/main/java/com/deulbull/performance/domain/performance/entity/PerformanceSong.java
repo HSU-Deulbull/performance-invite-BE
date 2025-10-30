@@ -1,6 +1,5 @@
-package com.deulbull.performance.domain.performancesSongs.entity;
+package com.deulbull.performance.domain.performance.entity;
 
-import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.song.entity.Song;
 import com.deulbull.performance.global.entity.BaseEntity;
 import jakarta.persistence.*;

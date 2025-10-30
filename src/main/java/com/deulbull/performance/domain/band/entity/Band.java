@@ -14,6 +14,10 @@ public class Band extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String bandName;
+
     private String logoUrl;
+    @Column(nullable = false)
+    private String name; // 필수
+    private String instagramUrl;
+    private String youtubeUrl;
 }
