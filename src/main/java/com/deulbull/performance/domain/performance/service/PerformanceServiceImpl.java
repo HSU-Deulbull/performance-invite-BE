@@ -38,6 +38,11 @@ public class PerformanceServiceImpl implements PerformanceService {
         posterUrls.add(performance.getPosterFrontUrl());
         posterUrls.add(performance.getPosterBackUrl());
 
+        // 현재 곡
+        String currentSongTitle = null;
+        String currentSongArtist = null;
+        String currentSongAlbumUrl = "";
+
         // morelink 리스트 생성
         List<PerformanceDetailResponseDto.MoreLinkDto> moreLinks = performanceMoreLinkRepository.findAllByPerformanceId(performance.getId())
                 .stream()
@@ -61,8 +66,9 @@ public class PerformanceServiceImpl implements PerformanceService {
                 performance.getVenue(),
                 performance.getOpenchatUrl(),
                 posterUrls,
-                performance.getCurrentSong().getSong().getTitle(),
-                performance.getCurrentSong().getSong().getArtist(),
+                currentSongTitle,
+                currentSongArtist,
+                currentSongAlbumUrl,
                 performance.getLocation(),
                 moreLinks
         );

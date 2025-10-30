@@ -19,6 +19,7 @@ public record PerformanceDetailResponseDto(
 
         String currentSongTitle,
         String currentSongArtist,
+        String currentSongAlbumUrl,
 
         String location, // 공연장 위치
 
