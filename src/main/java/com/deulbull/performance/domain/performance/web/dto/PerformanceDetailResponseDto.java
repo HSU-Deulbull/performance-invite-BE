@@ -3,6 +3,7 @@ package com.deulbull.performance.domain.performance.web.dto;
 import java.util.List;
 
 public record PerformanceDetailResponseDto(
+        Long performanceId,
         String bandName,
         String bandWebsiteTitle, // 밴드 웹사이트 소개 문구
         List<String> imageUrls, // 공연 이미지 리스트
