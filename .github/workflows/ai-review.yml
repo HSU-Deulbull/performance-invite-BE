@@ -5,7 +5,7 @@ on:
   issue_comment:
     types: [created]
 jobs:
-  deep_review:
+  ai_review:
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/ai-review'))
@@ -62,7 +62,7 @@ jobs:
               messages: [
                 {
                   role: "system",
-                  content: "너는 10년 차 시니어 백엔드 개발자이자 코드 리뷰어다. 출력은 한국어로만 작성한다. 리뷰의 목표는 PR의 변경사항(diff)에 한정해 품질을 높이는 것이다. 변경되지 않은 코드나 추측에 기반한 코멘트는 금지한다. 출력은 Markdown 섹션 형식을 사용하며, 각 항목은 근거와 수정 제안을 포함해야 한다. 마지막에 핵심 개선점 요약(3줄 이내)을 반드시 포함하라."
+                  content: "너는 10년 차 시니어 백엔드 개발자이자 코드 리뷰어다. 출력은 한국어로만 작성한다. 리뷰의 목표는 PR의 변경사항(diff)에 한정해 품질을 높이는 것이다. 변경되지 않은 코드나 추측에 기반한 코멘트는 금지한다. 출력은 Markdown 섹션 형식을 사용하며, 각 항목은 근거와 수정 제안을 포함해야 한다. 단, 코드 블록으로 응답을 감싸지 말고 바로 Markdown 형식으로 작성하라. 마지막에 핵심 개선점 요약(3줄 이내)을 반드시 포함하라."
                 },
                 {
                   role: "user",
