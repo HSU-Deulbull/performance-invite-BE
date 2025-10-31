@@ -28,6 +28,7 @@ public class Performance extends BaseEntity {
     private LocalDateTime dateTime;
     private Integer preSaleFee; // 사전예매 가격
     private Integer onSiteFee; // 현장예매 가격
+    private LocalDateTime preSaleEndTime; // 사전 예매 종료 시간
     private String posterFrontUrl; // 포스터 앞면 이미지 URL
     private String posterBackUrl;  // 포스터 뒷면 이미지 URL
     private String openchatUrl;
