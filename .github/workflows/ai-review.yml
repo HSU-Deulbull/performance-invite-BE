@@ -92,7 +92,6 @@ jobs:
             exit 0
           fi
           
-          TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
           gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments -f body="[$TIMESTAMP] $REVIEW"
           
           echo "AI 코드 리뷰 완료: PR #$PR_NUMBER"
