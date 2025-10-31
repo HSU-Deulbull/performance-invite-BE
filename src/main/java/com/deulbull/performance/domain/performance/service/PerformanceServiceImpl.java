@@ -6,7 +6,6 @@ import com.deulbull.performance.domain.performance.exception.PerformanceNotFound
 import com.deulbull.performance.domain.performance.repository.PerformanceImageRepository;
 import com.deulbull.performance.domain.performance.repository.PerformanceMoreLinkRepository;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
-import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailRequestDto;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailResponseDto;
 import com.deulbull.performance.domain.song.exception.SongNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +22,8 @@ public class PerformanceServiceImpl implements PerformanceService {
     private final PerformanceMoreLinkRepository performanceMoreLinkRepository;
 
     @Override
-    public PerformanceDetailResponseDto getPerformanceDetail(PerformanceDetailRequestDto dto) {
-        Performance performance = performanceRepository.findById(dto.getPerformanceId())
+    public PerformanceDetailResponseDto getPerformanceDetail(Long performanceId) {
+        Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new); // 404: 존재하지 않는 공연
 
         // 공연 이미지 리스트 생성
