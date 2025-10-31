@@ -92,6 +92,6 @@ jobs:
             exit 0
           fi
           
-          gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments -f body="[$TIMESTAMP] $REVIEW"
+          gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments -f body="$REVIEW"
           
           echo "AI 코드 리뷰 완료: PR #$PR_NUMBER"
