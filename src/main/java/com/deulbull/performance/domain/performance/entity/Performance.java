@@ -1,12 +1,11 @@
 package com.deulbull.performance.domain.performance.entity;
 
-import com.deulbull.performance.domain.performancesSongs.entity.PerformanceSong;
+import com.deulbull.performance.domain.performanceSongs.entity.PerformanceSong;
 import com.deulbull.performance.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Getter
