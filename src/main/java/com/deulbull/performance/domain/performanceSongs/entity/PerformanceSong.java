@@ -1,4 +1,4 @@
-package com.deulbull.performance.domain.performancesSongs.entity;
+package com.deulbull.performance.domain.performanceSongs.entity;
 
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.song.entity.Song;
