@@ -1,7 +1,7 @@
 package com.deulbull.performance.domain.admin.service;
 
 import com.deulbull.performance.domain.admin.entity.Admin;
-import com.deulbull.performance.domain.admin.exception.AdminNotFoundException;
+import com.deulbull.performance.domain.admin.exception.AdminInvalidPasswordException;
 import com.deulbull.performance.domain.admin.repository.AdminRepository;
 import com.deulbull.performance.domain.admin.web.dto.AdminLoginRequestDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminLoginResponseDto;
@@ -22,7 +22,7 @@ public class AdminServiceImpl implements AdminService {
     public AdminLoginResponseDto login(AdminLoginRequestDto adminLoginRequestDto) {
         String password = adminLoginRequestDto.getPassword();
         Admin admin = adminRepository.findByPassword(password)
-                .orElseThrow(AdminNotFoundException::new);
+                .orElseThrow(AdminInvalidPasswordException::new);
 
         Performance performance = admin.getPerformance();
 

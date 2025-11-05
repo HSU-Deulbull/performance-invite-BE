@@ -4,7 +4,6 @@ import com.deulbull.performance.domain.admin.service.AdminService;
 import com.deulbull.performance.domain.admin.web.dto.AdminLoginRequestDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminLoginResponseDto;
 import com.deulbull.performance.global.response.SuccessResponse;
-import com.sun.net.httpserver.Authenticator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

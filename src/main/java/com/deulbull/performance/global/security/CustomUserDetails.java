@@ -21,10 +21,14 @@ public class CustomUserDetails implements UserDetails {
         this.admin = admin;
     }
 
+    public Long getAdminId() {
+        return admin.getId();
+    }
+
     // 사용자 권한 목록 반환
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(admin.getRole().toString()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + admin.getRole()));
     }
 
     @Override
