@@ -37,7 +37,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/admin/login").permitAll()
+                        .requestMatchers("/api/admin/auth/login").permitAll()
                         .requestMatchers("/api/admin/**").authenticated() // 관리자만 관리자 페이지 접근 가능
                         .requestMatchers("/api/**").permitAll()  // 다른 API는 모두 접근
                         .anyRequest().permitAll()

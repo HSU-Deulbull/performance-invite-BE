@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AdminController {
     private final AdminService adminService;
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public SuccessResponse<AdminLoginResponseDto> login(@RequestBody @Valid AdminLoginRequestDto adminLoginRequestDto) {
         AdminLoginResponseDto data = adminService.login(adminLoginRequestDto);
         return SuccessResponse.created(data);

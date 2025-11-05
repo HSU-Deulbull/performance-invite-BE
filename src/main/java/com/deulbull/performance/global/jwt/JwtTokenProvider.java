@@ -47,8 +47,7 @@ public class JwtTokenProvider {
                 // subject: JWT에 담긴 정보의 주체. 일반적으로 사용자의 고유 식별자나 아이디 사용
                 .subject(String.valueOf(admin.getId()))
                 // claim: JWT 안에 넣고 싶은 추가 정보들
-                .claim("performance", admin.getPerformance())
-                .claim("role", admin.getRole())
+                .claim("role", admin.getRole().toString())
                 // issuedAt: 토큰이 발급된 시간 -> 보안상 이유로 보통 넣음
                 .issuedAt(now)
                 // expiration: 만료 시간
