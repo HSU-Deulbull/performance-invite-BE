@@ -34,12 +34,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         logger.info("servletPath : {}", path);
 
-        // /admin 경로가 아니면 다음 필터로 넘어가기
-        if(!path.contains("/admin")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         // 1. extractToken: Authorization 헤더에서 JWT 토큰 추출
         String token = extractToken(request);
 

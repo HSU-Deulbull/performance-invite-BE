@@ -21,7 +21,7 @@ public class BaseResponse {
 
     private final String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-    public static BaseResponse of(HttpStatus isSuccess, String baseCode) {
+    public static BaseResponse of(Boolean isSuccess, BaseResponseCode baseCode) {
         return new BaseResponse(isSuccess, baseCode.getCode(), baseCode.getMessage());
     }
 
