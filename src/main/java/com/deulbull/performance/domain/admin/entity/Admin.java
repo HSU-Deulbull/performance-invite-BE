@@ -1,6 +1,7 @@
 package com.deulbull.performance.domain.admin.entity;
 
 import com.deulbull.performance.domain.admin.entity.enums.AdminRole;
+import com.deulbull.performance.domain.band.entity.Band;
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -25,4 +26,8 @@ public class Admin extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "performance_id")
     private Performance performance;
+
+    @ManyToOne
+    @JoinColumn(name = "band_id")
+    private Band band;
 }
