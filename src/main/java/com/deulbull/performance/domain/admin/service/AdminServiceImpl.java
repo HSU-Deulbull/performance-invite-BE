@@ -17,6 +17,7 @@ public class AdminServiceImpl implements AdminService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AdminRepository adminRepository;
 
+    // 로그인
     @Override
     public AdminLoginResponseDto login(AdminLoginRequestDto adminLoginRequestDto) {
         String password = adminLoginRequestDto.getPassword();
