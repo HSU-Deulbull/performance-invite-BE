@@ -4,6 +4,7 @@ import com.deulbull.performance.global.response.code.BaseResponseCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,7 +21,7 @@ public class BaseResponse {
 
     private final String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-    public static BaseResponse of(Boolean isSuccess, BaseResponseCode baseCode) {
+    public static BaseResponse of(HttpStatus isSuccess, String baseCode) {
         return new BaseResponse(isSuccess, baseCode.getCode(), baseCode.getMessage());
     }
 
