@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,7 @@ import java.io.IOException;
 public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenFilter.class);
 
     // 요청이 들어올 때마다 JWT 토큰을 검증함
     // 유효한 경우 인증 정보를 SecurityContext에 저장
@@ -27,6 +30,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+
+        String path = request.getServletPath();
+        logger.info("servletPath : {}", path);
+
+        // /admin 경로가 아니면 다음 필터로 넘어가기
+        if(!path.contains("/admin")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // 1. extractToken: Authorization 헤더에서 JWT 토큰 추출
         String token = extractToken(request);
@@ -47,7 +59,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private String extractToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization"); // Authorization 헤더 가져오기
         if (bearer != null && bearer.startsWith("Bearer ")) {
-            System.out.println("Token: " + bearer);
+            logger.info("bearer : {}", bearer);
             return bearer.substring(7); // "Bearer " 이후의 실제 토큰 값만 사용
         }
         return null; // 형식이 올바르지 않으면 -> null 반환
