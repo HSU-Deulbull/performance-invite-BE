@@ -23,11 +23,11 @@ public class Admin extends BaseEntity {
 
     private String password;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER) // 항상 같이 로드
     @JoinColumn(name = "performance_id")
     private Performance performance;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // 필요시에만 JOIN FETCH 예정
     @JoinColumn(name = "band_id")
     private Band band;
 }

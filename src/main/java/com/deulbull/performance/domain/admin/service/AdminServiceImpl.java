@@ -21,7 +21,8 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public AdminLoginResponseDto login(AdminLoginRequestDto adminLoginRequestDto) {
         String password = adminLoginRequestDto.getPassword();
-        Admin admin = adminRepository.findByPassword(password)
+        // Band 정보도 필요하므로 JOIN FETCH 사용
+        Admin admin = adminRepository.findByPasswordWithBand(password)
                 .orElseThrow(AdminInvalidPasswordException::new);
 
         Performance performance = admin.getPerformance();
