@@ -2,6 +2,7 @@ package com.deulbull.performance.global.jwt;
 
 import com.deulbull.performance.domain.admin.entity.Admin;
 import com.deulbull.performance.domain.admin.repository.AdminRepository;
+import com.deulbull.performance.global.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -87,8 +88,17 @@ public class JwtTokenProvider {
                 .orElseThrow(()-> new RuntimeException("해당 회원 정보 없음. adminId: " + adminId));
 
         // TODO: 2. CustomUserDetails 생성
+        CustomUserDetails userDetails = new CustomUserDetails(admin);
 
         // TODO: 3. 인증 객체 생성 후 반환
-
-
+        // principal: 사용자 정보 객체
+        // credentials: 인증 수단 (보통 비밀번호)
+        // authorities: 권한 목록
+        // UsernamePasswordAuthenticationToken: Spring Security에서 인증이 완료된 사용자를 SecurityContext에 저장하기 위해 사용하는 객체
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+    }
 }
