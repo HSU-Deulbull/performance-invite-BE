@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface AdminRepository extends JpaRepository<Admin, Long> {
     // Band를 JOIN FETCH로 함께 조회 (N+1 쿼리 방지)
-    @Query("SELECT a FROM Admin a LEFT JOIN FETCH a.band WHERE a.password = :password")
-    Optional<Admin> findByPasswordWithBand(@Param("password") String password);
+    @Query("SELECT a FROM Admin a LEFT JOIN FETCH a.band WHERE a.id = :id")
+    Optional<Admin> findByIdWithBand(@Param("id") Long id);
 }
