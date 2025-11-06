@@ -4,11 +4,15 @@ import com.deulbull.performance.domain.band.entity.BandSession;
 import com.deulbull.performance.domain.band.repository.BandSessionRepository;
 import com.deulbull.performance.domain.performanceSongs.entity.PerformanceSong;
 import com.deulbull.performance.domain.performanceSongs.exception.PerformanceSongsNotFoundException;
+import com.deulbull.performance.domain.performanceSongs.repository.LikesOnly;
 import com.deulbull.performance.domain.performanceSongs.repository.PerformanceSongsRepository;
 import com.deulbull.performance.domain.performanceSongs.web.dto.PerformanceSongsDetailResponseDto;
+import com.deulbull.performance.domain.performanceSongs.web.dto.PerformanceSongsLikeRequestDto;
+import com.deulbull.performance.domain.performanceSongs.web.dto.PerformanceSongsLikeResponseDto;
 import com.deulbull.performance.domain.song.entity.Song;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -56,5 +60,22 @@ public class PerformanceSongsServiceImpl implements PerformanceSongsService {
                 .toList();
 
         return new PerformanceSongsDetailResponseDto(track, team);
+    }
+
+    @Transactional
+    @Override
+    public PerformanceSongsLikeResponseDto getPerformanceSongsLike(Long performanceSongId, PerformanceSongsLikeRequestDto liked) {
+        int delta = liked.liked() ? 1 : -1; // true: +1 / false -1
+        int updated = performanceSongsRepository.likes(performanceSongId, delta);
+        if (updated == 0) {
+            if (!performanceSongsRepository.existsById(performanceSongId)) {
+                throw new PerformanceSongsNotFoundException();
+            }
+            // 존재하지만 값 변화 없음 -> 계속 진행
+        }
+        int currentLikes = performanceSongsRepository.findLikesById(performanceSongId)
+                .map(LikesOnly::getLikes)
+                .orElseThrow(PerformanceSongsNotFoundException::new);
+        return new PerformanceSongsLikeResponseDto(currentLikes, liked.liked());
     }
 }
