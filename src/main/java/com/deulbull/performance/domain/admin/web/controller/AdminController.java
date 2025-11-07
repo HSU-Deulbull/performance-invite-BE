@@ -6,6 +6,8 @@ import com.deulbull.performance.domain.admin.web.dto.AdminLoginResponseDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminSignupRequestDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminSignupResponseDto;
 import com.deulbull.performance.domain.admin.web.dto.BookingListResponseDto;
+import com.deulbull.performance.domain.booking.service.BookingService;
+import com.deulbull.performance.domain.booking.web.dto.BookingUpdateRequestDto;
 import com.deulbull.performance.global.response.SuccessResponse;
 import com.deulbull.performance.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/admin")
 public class AdminController {
     private final AdminService adminService;
+    private final BookingService bookingService;
 
     // 로그인
     @PostMapping("/auth/login")
@@ -50,5 +53,21 @@ public class AdminController {
         Long adminId = userDetails.getAdminId();
         BookingListResponseDto data = adminService.getBookingList(adminId, page, size);
         return SuccessResponse.ok(data);
+    }
+
+    // 예매 정보 수정
+    @PatchMapping("/bookings/{bookingId}")
+    public SuccessResponse<Void> updateBooking(
+            @AuthenticationPrincipal(errorOnInvalidType = false) CustomUserDetails userDetails,
+            @PathVariable Long bookingId,
+            @RequestBody @Valid BookingUpdateRequestDto requestDto
+    ) {
+        // userDetails가 null이면 Spring Security의 AuthenticationEntryPoint가 처리
+        if (userDetails == null) {
+            throw new InsufficientAuthenticationException("Authentication required");
+        }
+
+        bookingService.updateBooking(bookingId, requestDto);
+        return SuccessResponse.ok(null);
     }
 }
