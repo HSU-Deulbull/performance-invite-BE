@@ -23,7 +23,7 @@ public class AdminController {
     @PostMapping("/auth/login")
     public SuccessResponse<AdminLoginResponseDto> login(@RequestBody @Valid AdminLoginRequestDto adminLoginRequestDto) {
         AdminLoginResponseDto data = adminService.login(adminLoginRequestDto);
-        return SuccessResponse.created(data);
+        return SuccessResponse.ok(data);
     }
 
     // 회원가입
