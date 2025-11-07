@@ -1,5 +1,6 @@
 package com.deulbull.performance.global.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,12 +38,22 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         // 1. extractToken: Authorization 헤더에서 JWT 토큰 추출
         String token = extractToken(request);
 
-        // 2. validateToken: 토큰 유효성 검사
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 3. getAuthentication: 토큰으로 사용자 인증 객체 생성
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            // 현재 요청의 SecurityContext에 인증 정보 넣기
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            // 2. validateToken: 토큰 유효성 검사
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                // 3. getAuthentication: 토큰으로 사용자 인증 객체 생성
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                // 현재 요청의 SecurityContext에 인증 정보 넣기
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (ExpiredJwtException e) {
+            // 토큰 만료 예외를 request에 저장
+            logger.error("JWT Token Expired: {}", e.getMessage());
+            request.setAttribute("exception", e);
+        } catch (Exception e) {
+            // 기타 JWT 예외를 request에 저장
+            logger.error("JWT Token Error: {}", e.getMessage());
+            request.setAttribute("exception", e);
         }
 
         // 다음 필터로 요청 전달

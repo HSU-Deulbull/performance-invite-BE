@@ -5,13 +5,14 @@ import com.deulbull.performance.domain.admin.web.dto.AdminLoginRequestDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminLoginResponseDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminSignupRequestDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminSignupResponseDto;
+import com.deulbull.performance.domain.admin.web.dto.BookingListResponseDto;
 import com.deulbull.performance.global.response.SuccessResponse;
+import com.deulbull.performance.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,5 +33,22 @@ public class AdminController {
             @RequestBody @Valid AdminSignupRequestDto adminSignupRequestDto) {
         AdminSignupResponseDto data = adminService.signup(adminSignupRequestDto);
         return SuccessResponse.created(data);
+    }
+
+    // 예매 현황 전체 조회
+    @GetMapping("/bookings")
+    public SuccessResponse<BookingListResponseDto> getBookingList(
+            @AuthenticationPrincipal(errorOnInvalidType = false) CustomUserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        // userDetails가 null이면 Spring Security의 AuthenticationEntryPoint가 처리
+        if (userDetails == null) {
+            throw new InsufficientAuthenticationException("Authentication required");
+        }
+
+        Long adminId = userDetails.getAdminId();
+        BookingListResponseDto data = adminService.getBookingList(adminId, page, size);
+        return SuccessResponse.ok(data);
     }
 }
