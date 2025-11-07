@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -85,6 +86,11 @@ public class GlobalExceptionHandler {
     /* 나머지 예외 처리 */
     @ExceptionHandler(Exception.class)
     private ResponseEntity<ErrorResponse> handleException(Exception e) {
+        // Spring Security의 인증/인가 예외는 Spring Security가 처리하도록 다시 던짐
+        if (e instanceof AuthenticationException) {
+            throw (AuthenticationException) e;
+        }
+
         log.error("Exception Error ", e);
         ErrorResponse error = ErrorResponse.of(GlobalErrorCode.SERVER_ERROR);
         return ResponseEntity.status(error.getHttpStatus()).body(error);

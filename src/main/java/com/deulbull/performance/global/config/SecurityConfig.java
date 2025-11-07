@@ -1,6 +1,7 @@
 package com.deulbull.performance.global.config;
 
 import com.deulbull.performance.global.exception.CustomAccessDeniedHandler;
+import com.deulbull.performance.global.exception.CustomAuthenticationEntryPoint;
 import com.deulbull.performance.global.jwt.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final JwtTokenFilter jwtTokenFilter;
 
     // 비밀번호 인코더
@@ -49,6 +51,7 @@ public class SecurityConfig {
 
                 // 예외처리 관련
                 .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // JWT_401_EXPIRED
                         .accessDeniedHandler(customAccessDeniedHandler) // JWT_403_UNAUTHORIZED
                 );
         ;
