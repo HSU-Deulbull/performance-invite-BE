@@ -37,13 +37,13 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/admin/auth/login").permitAll()
-                        .requestMatchers("/api/admin/**").authenticated() // 관리자만 관리자 페이지 접근 가능
-                        .requestMatchers("/api/**").permitAll()  // 다른 API는 모두 접근
+                        .requestMatchers("/api/admin/auth/login", "/api/admin/auth/signup").permitAll()
+                        .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/api/**").permitAll()
                         .anyRequest().permitAll()
                 )
 
-                // 4. JWT 필터 등록
+                // JWT 필터 등록
                 // 스프링 시큐리티에서 제공하는 로그인 처리 필터인 UsernamePasswordAuthenticationFilter 전에 실행되도록 설정
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
 
