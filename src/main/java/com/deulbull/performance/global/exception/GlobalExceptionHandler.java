@@ -3,6 +3,7 @@ package com.deulbull.performance.global.exception;
 import com.deulbull.performance.global.response.ErrorResponse;
 import com.deulbull.performance.global.response.code.GlobalErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
@@ -42,6 +44,15 @@ public class GlobalExceptionHandler {
         log.error("MethodArgumentTypeMismatchException Error", e);
         ErrorResponse error = ErrorResponse.of(GlobalErrorCode.INVALID_HTTP_MESSAGE_BODY);
         return ResponseEntity.status(error.getHttpStatus()).body(error);
+    }
+
+    /* 해당 엔드포인트에 적합한 컨트롤러가 없을 경우 발생*/
+    @ExceptionHandler(NoResourceFoundException.class)
+    private ResponseEntity<ErrorResponse> handleNoResourceFoundException(
+            NoResourceFoundException e) {
+        log.error("NoResourceFoundException Error", e);
+        ErrorResponse error = ErrorResponse.of(GlobalErrorCode.ENDPOINT_NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     /* 지원하지 않은 HTTP method 호출 할 경우 발생 */
