@@ -1,11 +1,7 @@
 package com.deulbull.performance.domain.admin.web.controller;
 
 import com.deulbull.performance.domain.admin.service.AdminService;
-import com.deulbull.performance.domain.admin.web.dto.AdminLoginRequestDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminLoginResponseDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminSignupRequestDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminSignupResponseDto;
-import com.deulbull.performance.domain.admin.web.dto.BookingListResponseDto;
+import com.deulbull.performance.domain.admin.web.dto.*;
 import com.deulbull.performance.domain.booking.service.BookingService;
 import com.deulbull.performance.domain.booking.web.dto.BookingUpdateRequestDto;
 import com.deulbull.performance.global.response.SuccessResponse;
@@ -85,4 +81,15 @@ public class AdminController {
         bookingService.deleteBooking(bookingId);
         return SuccessResponse.ok(null);
     }
+
+    // 문자 발송 대상 인원 수 조회
+    @GetMapping("/messages/count")
+    public SuccessResponse<AdminMessageTargetCountResponseDto> getMessageTargetCount(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        AdminMessageTargetCountResponseDto response = adminService.getMessageTargetCount(userDetails);
+        return SuccessResponse.ok(response);
+    }
+
+
 }
