@@ -5,11 +5,7 @@ import com.deulbull.performance.domain.admin.entity.enums.AdminRole;
 import com.deulbull.performance.domain.admin.exception.AdminInvalidPasswordException;
 import com.deulbull.performance.domain.admin.exception.AdminNotFoundException;
 import com.deulbull.performance.domain.admin.repository.AdminRepository;
-import com.deulbull.performance.domain.admin.web.dto.AdminLoginRequestDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminLoginResponseDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminSignupRequestDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminSignupResponseDto;
-import com.deulbull.performance.domain.admin.web.dto.BookingListResponseDto;
+import com.deulbull.performance.domain.admin.web.dto.*;
 import com.deulbull.performance.domain.admin.web.dto.BookingListResponseDto.BookingDto;
 import com.deulbull.performance.domain.admin.web.dto.BookingListResponseDto.PageInfo;
 import com.deulbull.performance.domain.band.entity.Band;
@@ -21,6 +17,7 @@ import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.performance.exception.PerformanceNotFoundException;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
 import com.deulbull.performance.global.jwt.JwtTokenProvider;
+import com.deulbull.performance.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -154,6 +151,31 @@ public class AdminServiceImpl implements AdminService {
                 totalBookingCount,
                 pageInfo,
                 bookingDtos
+        );
+    }
+
+    // 문자 발송 대상 인원 수 조회
+    @Override
+    public AdminMessageTargetCountResponseDto getMessageTargetCount(Long adminId) {
+        // 404: 해당 ID의 관리자 없음
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(AdminNotFoundException::new);
+        Performance performance = admin.getPerformance();
+
+        List<Booking> bookings = bookingRepository.findAllByPerformanceId(performance.getId());
+
+        // 예매자 수
+        int smsTargetCount = bookings.size();
+
+        // 총 예매 인원 수
+        int totalBookingCount = bookings.stream()
+                .mapToInt(Booking::getHeadCount)
+                .sum();
+
+        // 반환
+        return new AdminMessageTargetCountResponseDto(
+                smsTargetCount,
+                totalBookingCount
         );
     }
 }

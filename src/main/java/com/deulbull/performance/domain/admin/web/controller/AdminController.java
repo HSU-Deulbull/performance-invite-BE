@@ -87,7 +87,11 @@ public class AdminController {
     public SuccessResponse<AdminMessageTargetCountResponseDto> getMessageTargetCount(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        AdminMessageTargetCountResponseDto response = adminService.getMessageTargetCount(userDetails);
+        if (userDetails == null) {
+            throw new InsufficientAuthenticationException("Authentication required");
+        }
+        Long adminId = userDetails.getAdminId();
+        AdminMessageTargetCountResponseDto response = adminService.getMessageTargetCount(adminId);
         return SuccessResponse.ok(response);
     }
 

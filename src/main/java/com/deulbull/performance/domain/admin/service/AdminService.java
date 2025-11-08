@@ -15,5 +15,5 @@ public interface AdminService {
     BookingListResponseDto getBookingList(Long adminId, int page, int size);
 
     // 문자 발송 대상 인원 수 조회
-    AdminMessageTargetCountResponseDto getMessageTargetCount(CustomUserDetails userDetails);
+    AdminMessageTargetCountResponseDto getMessageTargetCount(Long adminId);
 }
