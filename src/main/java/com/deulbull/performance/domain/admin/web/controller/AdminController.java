@@ -70,4 +70,19 @@ public class AdminController {
         bookingService.updateBooking(bookingId, requestDto);
         return SuccessResponse.ok(null);
     }
+
+    // 예매 삭제
+    @DeleteMapping("/bookings/{bookingId}")
+    public SuccessResponse<Void> deleteBooking(
+            @AuthenticationPrincipal(errorOnInvalidType = false) CustomUserDetails userDetails,
+            @PathVariable Long bookingId
+    ) {
+        // userDetails가 null이면 Spring Security의 AuthenticationEntryPoint가 처리
+        if (userDetails == null) {
+            throw new InsufficientAuthenticationException("Authentication required");
+        }
+
+        bookingService.deleteBooking(bookingId);
+        return SuccessResponse.ok(null);
+    }
 }
