@@ -3,11 +3,11 @@ import java.util.List;
 
 public record PerformanceSetlistResponse(
         int nowPlayingOrder,
-        List<PerformanceSetListDetail> performanceSetListDetails
+        List<PerformanceSetListDetail> setlist
 ) {
     public record PerformanceSetListDetail(
         int order,
-        int performanceSongId,
+        Long performanceSongId,
         String title,
         String artist
     ){
