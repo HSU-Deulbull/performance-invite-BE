@@ -13,4 +13,7 @@ public interface BookingService {
 
     // 예매 정보 수정
     void updateBooking(Long bookingId, BookingUpdateRequestDto requestDto);
+
+    // 예매 삭제
+    void deleteBooking(Long bookingId);
 }
