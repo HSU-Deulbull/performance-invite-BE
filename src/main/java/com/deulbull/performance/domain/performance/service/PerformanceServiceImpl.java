@@ -113,7 +113,7 @@ public class PerformanceServiceImpl implements PerformanceService {
         // currentSong이 null일 수 있는 경우 처리
         int currentSongId = performance.getCurrentSong() != null
                 ? performance.getCurrentSong().getOrderInPerformance()
-                : 0;
+                : -1;
 
         return new PerformanceSetlistResponse(currentSongId, setList);
     }
