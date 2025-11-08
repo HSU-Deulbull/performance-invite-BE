@@ -1,10 +1,7 @@
 package com.deulbull.performance.domain.admin.service;
 
-import com.deulbull.performance.domain.admin.web.dto.AdminLoginRequestDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminLoginResponseDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminSignupRequestDto;
-import com.deulbull.performance.domain.admin.web.dto.AdminSignupResponseDto;
-import com.deulbull.performance.domain.admin.web.dto.BookingListResponseDto;
+import com.deulbull.performance.domain.admin.web.dto.*;
+import com.deulbull.performance.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 
 public interface AdminService {
@@ -16,4 +13,7 @@ public interface AdminService {
 
     // 예매 현황 전체 조회
     BookingListResponseDto getBookingList(Long adminId, int page, int size);
+
+    // 문자 발송 대상 인원 수 조회
+    AdminMessageTargetCountResponseDto getMessageTargetCount(Long adminId);
 }

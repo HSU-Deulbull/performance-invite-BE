@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
@@ -21,4 +23,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // 특정 공연의 총 인원 수 합계
     @Query("SELECT COALESCE(SUM(b.headCount), 0) FROM Booking b WHERE b.performance = :performance")
     Integer sumHeadCountByPerformance(@Param("performance") Performance performance);
+
+    List<Booking> findAllByPerformanceId(Long performanceId);
 }
