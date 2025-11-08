@@ -2,9 +2,12 @@ package com.deulbull.performance.domain.performance.web.controller;
 
 import com.deulbull.performance.domain.performance.service.PerformanceService;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailResponseDto;
+import com.deulbull.performance.domain.performance.web.dto.PerformanceSetlistResponse;
 import com.deulbull.performance.global.response.SuccessResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/performances")
@@ -13,12 +16,21 @@ public class PerformanceController {
 
     private final PerformanceService performanceService;
 
-    // 공연 상세 조회 API
+    // 공연 상세 조회
     @GetMapping("/{performanceId}")
     public SuccessResponse<PerformanceDetailResponseDto> getPerformanceDetail(
             @PathVariable Long performanceId
     ) {
-        PerformanceDetailResponseDto responseDto = performanceService.getPerformanceDetail(performanceId);
-        return SuccessResponse.ok(responseDto);
+        PerformanceDetailResponseDto response = performanceService.getPerformanceDetail(performanceId);
+        return SuccessResponse.ok(response);
+    }
+
+    // 공연 셋리스트 조회
+    @GetMapping("/{performanceId}/setlist")
+    public SuccessResponse<PerformanceSetlistResponse> getPerformanceSetList(
+            @PathVariable Long performanceId
+    ){
+        PerformanceSetlistResponse response = performanceService.getPerformanceSetlist(performanceId);
+        return SuccessResponse.ok(response);
     }
 }
