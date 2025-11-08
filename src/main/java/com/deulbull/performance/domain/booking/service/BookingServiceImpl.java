@@ -78,4 +78,15 @@ public class BookingServiceImpl implements BookingService {
         booking.setPhoneNumber(requestDto.phoneNumber());
         booking.setHeadCount(requestDto.headCount());
     }
+
+    @Override
+    @Transactional
+    public void deleteBooking(Long bookingId) {
+        // 1. 예매 조회
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(BookingNotFoundException::new);
+
+        // 2. 예매 삭제
+        bookingRepository.delete(booking);
+    }
 }
