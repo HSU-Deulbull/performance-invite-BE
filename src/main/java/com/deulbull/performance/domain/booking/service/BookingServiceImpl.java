@@ -2,9 +2,11 @@ package com.deulbull.performance.domain.booking.service;
 
 import com.deulbull.performance.domain.booking.entity.Booking;
 import com.deulbull.performance.domain.booking.exception.BookingDeadlinePassedException;
+import com.deulbull.performance.domain.booking.exception.BookingNotFoundException;
 import com.deulbull.performance.domain.booking.exception.OpenChatUrlNotFoundException;
 import com.deulbull.performance.domain.booking.repository.BookingRepository;
 import com.deulbull.performance.domain.booking.web.dto.BookingRequestDto;
+import com.deulbull.performance.domain.booking.web.dto.BookingUpdateRequestDto;
 import com.deulbull.performance.domain.booking.web.dto.OpenChatUrlResponse;
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.performance.exception.PerformanceNotFoundException;
@@ -62,5 +64,29 @@ public class BookingServiceImpl implements BookingService {
 
         // 3. 응답 반환
         return new OpenChatUrlResponse(openchatUrl);
+    }
+
+    @Override
+    @Transactional
+    public void updateBooking(Long bookingId, BookingUpdateRequestDto requestDto) {
+        // 1. 예매 조회
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(BookingNotFoundException::new);
+
+        // 2. 예매 정보 수정 (JPA 변경 감지로 자동 업데이트)
+        booking.setName(requestDto.name());
+        booking.setPhoneNumber(requestDto.phoneNumber());
+        booking.setHeadCount(requestDto.headCount());
+    }
+
+    @Override
+    @Transactional
+    public void deleteBooking(Long bookingId) {
+        // 1. 예매 조회
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(BookingNotFoundException::new);
+
+        // 2. 예매 삭제
+        bookingRepository.delete(booking);
     }
 }

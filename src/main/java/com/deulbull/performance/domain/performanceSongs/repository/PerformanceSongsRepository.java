@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,6 +19,8 @@ public interface PerformanceSongsRepository extends JpaRepository<PerformanceSon
     int likes(@Param("id") Long id, @Param("delta") int delta);
 
     Optional<LikesOnly> findLikesById(Long performanceSongId);
+
+    List<PerformanceSong> findByPerformanceId(Long id);
 
     // 다음 곡: current.orderInPerformance보다 큰 곡 중 가장 작은 순서
     Optional<PerformanceSong> findFirstByPerformance_IdAndOrderInPerformanceGreaterThanOrderByOrderInPerformanceAsc(
