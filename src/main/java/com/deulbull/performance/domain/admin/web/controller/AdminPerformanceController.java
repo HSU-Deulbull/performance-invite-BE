@@ -18,9 +18,19 @@ public class AdminPerformanceController {
 
     private final AdminPerformanceService adminPerformanceService;
 
-    @GetMapping("/performance/current")
+    @GetMapping("/performances/current")
     public SuccessResponse<AdminCurrentSongResponseDto> getCurrentSong(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long adminId = userDetails.getAdminId();
         return SuccessResponse.ok(adminPerformanceService.getCurrentSong(adminId));
+    }
+    @PostMapping("/performances/next")
+    public SuccessResponse<AdminCurrentSongResponseDto> getNextSong(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long adminId = userDetails.getAdminId();
+        return SuccessResponse.ok(adminPerformanceService.getNextSong(adminId));
+    }
+    @PostMapping("/performances/previous")
+    public SuccessResponse<AdminCurrentSongResponseDto> getPreviousSong(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long adminId = userDetails.getAdminId();
+        return SuccessResponse.ok(adminPerformanceService.getPreviousSong(adminId));
     }
 }
