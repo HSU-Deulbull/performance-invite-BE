@@ -1,7 +1,6 @@
 package com.deulbull.performance.domain.admin.service;
 
 import com.deulbull.performance.domain.admin.web.dto.*;
-import com.deulbull.performance.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 
 public interface AdminService {
