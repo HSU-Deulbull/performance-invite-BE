@@ -12,7 +12,4 @@ public interface AdminService {
 
     // 예매 현황 전체 조회
     BookingListResponseDto getBookingList(Long adminId, int page, int size);
-
-    // 문자 발송 대상 인원 수 조회
-    AdminMessageTargetCountResponseDto getMessageTargetCount(Long adminId);
 }
