@@ -1,5 +1,6 @@
 package com.deulbull.performance.domain.admin.web.controller;
 
+import com.deulbull.performance.domain.admin.service.AdminMessageService;
 import com.deulbull.performance.domain.admin.service.AdminService;
 import com.deulbull.performance.domain.admin.web.dto.*;
 import com.deulbull.performance.domain.booking.service.BookingService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
     private final AdminService adminService;
     private final BookingService bookingService;
+    private final AdminMessageService adminMessageService;
 
     // 로그인
     @PostMapping("/auth/login")
@@ -91,7 +93,7 @@ public class AdminController {
             throw new InsufficientAuthenticationException("Authentication required");
         }
         Long adminId = userDetails.getAdminId();
-        AdminMessageTargetCountResponseDto response = adminService.getMessageTargetCount(adminId);
+        AdminMessageTargetCountResponseDto response = adminMessageService.getMessageTargetCount(adminId);
         return SuccessResponse.ok(response);
     }
 
