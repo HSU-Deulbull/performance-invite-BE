@@ -45,7 +45,7 @@ public class AdminMessageController {
         }
 
         Long adminId = userDetails.getAdminId();
-        AdminMessageTargetCountResponseDto data = adminMessageService.getMessageTargetCount(adminId, performanceId);
+        AdminMessageTargetCountResponseDto data = adminMessageService.getMessageTargetCount(adminId);
         return SuccessResponse.ok(data);
     }
 }

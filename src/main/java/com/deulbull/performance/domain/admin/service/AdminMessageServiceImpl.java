@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import net.nurigo.sdk.NurigoApp;
 import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import net.nurigo.sdk.message.service.DefaultMessageService;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -23,8 +22,6 @@ import java.util.List;
 public class AdminMessageServiceImpl implements AdminMessageService {
     private final AdminRepository adminRepository;
     private final BookingRepository bookingRepository;
-    private final Logger logger;
-
 
     @Value("${sms.api.key}")
     private String apiKey;
@@ -90,14 +87,17 @@ public class AdminMessageServiceImpl implements AdminMessageService {
                 smsService.sendOne(new SingleMessageSendingRequest(message));
                 successCount++;
             } catch (Exception e) {
-                logger.error("문자 발송 실패 ({}): {}", booking.getPerformance(), e.getMessage());
+
+                System.out.println("문자 발송 실패 (" + booking.getPerformance() + "): " + e.getMessage());
                 failCount++;
             }
         }
 
-        // 로그 남기기
-        logger.info("[문자 발송 결과] adminId={}, performanceId={}, success={}, fail={}",
-                adminId, performance.getId(), successCount, failCount);
+        // 테스트
+        System.out.println("[문자 발송 결과] adminId=" + adminId
+                + ", performanceId=" + performance.getId()
+                + ", success=" + successCount
+                + ", fail=" + failCount);
     }
 
 
