@@ -41,7 +41,8 @@ public class AdminController {
     public SuccessResponse<BookingListResponseDto> getBookingList(
             @AuthenticationPrincipal(errorOnInvalidType = false) CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String search
     ) {
         // userDetails가 null이면 Spring Security의 AuthenticationEntryPoint가 처리
         if (userDetails == null) {
@@ -49,7 +50,7 @@ public class AdminController {
         }
 
         Long adminId = userDetails.getAdminId();
-        BookingListResponseDto data = adminService.getBookingList(adminId, page, size);
+        BookingListResponseDto data = adminService.getBookingList(adminId, page, size, search);
         return SuccessResponse.ok(data);
     }
 

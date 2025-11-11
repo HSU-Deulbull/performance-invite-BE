@@ -11,5 +11,5 @@ public interface AdminService {
     AdminSignupResponseDto signup(@Valid AdminSignupRequestDto adminSignupRequestDto);
 
     // 예매 현황 전체 조회
-    BookingListResponseDto getBookingList(Long adminId, int page, int size);
+    BookingListResponseDto getBookingList(Long adminId, int page, int size, String search);
 }

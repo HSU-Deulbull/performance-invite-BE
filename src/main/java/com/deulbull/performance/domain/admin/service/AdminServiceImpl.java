@@ -109,7 +109,7 @@ public class AdminServiceImpl implements AdminService {
     // 예매 현황 전체 조회
     @Override
     @Transactional(readOnly = true)
-    public BookingListResponseDto getBookingList(Long adminId, int page, int size) {
+    public BookingListResponseDto getBookingList(Long adminId, int page, int size, String search) {
         // 1. Admin 조회 (Performance 정보 포함 - EAGER로 자동 로드됨)
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(AdminNotFoundException::new);
@@ -119,14 +119,27 @@ public class AdminServiceImpl implements AdminService {
         // 2. 페이징 설정 (createdAt 기준 내림차순)
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        // 3. 예매 목록 조회
-        Page<Booking> bookingPage = bookingRepository.findByPerformance(performance, pageable);
+        // 3. 예매 목록 조회 (검색어가 있으면 이름 검색, 없으면 전체 조회)
+        Page<Booking> bookingPage;
+        Integer totalHeadCount;
+        long totalBookingCount;
 
-        // 4. 총 인원 수 및 총 예매 건수 조회
-        Integer totalHeadCount = bookingRepository.sumHeadCountByPerformance(performance);
-        long totalBookingCount = bookingRepository.countByPerformance(performance);
+        boolean hasSearchQuery = search != null && !search.trim().isEmpty();
 
-        // 5. DTO 변환
+        if (hasSearchQuery) {
+            // 검색어가 있는 경우
+            String trimmedSearch = search.trim();
+            bookingPage = bookingRepository.findByPerformanceAndNameContaining(performance, trimmedSearch, pageable);
+            totalHeadCount = bookingRepository.sumHeadCountByPerformanceAndNameContaining(performance, trimmedSearch);
+            totalBookingCount = bookingRepository.countByPerformanceAndNameContaining(performance, trimmedSearch);
+        } else {
+            // 검색어가 없는 경우 (전체 조회)
+            bookingPage = bookingRepository.findByPerformance(performance, pageable);
+            totalHeadCount = bookingRepository.sumHeadCountByPerformance(performance);
+            totalBookingCount = bookingRepository.countByPerformance(performance);
+        }
+
+        // 4. DTO 변환
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd HH:mm");
         List<BookingDto> bookingDtos = bookingPage.getContent().stream()
                 .map(booking -> new BookingDto(

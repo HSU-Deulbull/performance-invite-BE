@@ -17,12 +17,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // 특정 공연의 예매 목록 조회 (페이징, createdAt 기준 정렬은 Pageable로 처리)
     Page<Booking> findByPerformance(Performance performance, Pageable pageable);
 
+    // 특정 공연의 예매 목록 조회 - 이름 검색 (페이징)
+    Page<Booking> findByPerformanceAndNameContaining(Performance performance, String name, Pageable pageable);
+
     // 특정 공연의 총 예매 건수
     long countByPerformance(Performance performance);
+
+    // 특정 공연의 총 예매 건수 - 이름 검색
+    long countByPerformanceAndNameContaining(Performance performance, String name);
 
     // 특정 공연의 총 인원 수 합계
     @Query("SELECT COALESCE(SUM(b.headCount), 0) FROM Booking b WHERE b.performance = :performance")
     Integer sumHeadCountByPerformance(@Param("performance") Performance performance);
+
+    // 특정 공연의 총 인원 수 합계 - 이름 검색
+    @Query("SELECT COALESCE(SUM(b.headCount), 0) FROM Booking b WHERE b.performance = :performance AND b.name LIKE CONCAT('%', :name, '%')")
+    Integer sumHeadCountByPerformanceAndNameContaining(@Param("performance") Performance performance, @Param("name") String name);
 
     List<Booking> findAllByPerformanceId(Long performanceId);
 }
