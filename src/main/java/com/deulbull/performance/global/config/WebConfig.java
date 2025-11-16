@@ -9,7 +9,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000") // 실제 프론트 주소 명시
+                .allowedOrigins(
+                        // 사용자 페이지
+                        "http://localhost:3000",
+                        "https://deulbul.netlify.app",
+                        // 관리자 페이지
+                        "http://localhost:3002",
+                        "https://deulbul-admin.netlify.app"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(true);
     }
