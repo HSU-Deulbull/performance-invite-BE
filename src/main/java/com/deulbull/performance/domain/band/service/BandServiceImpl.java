@@ -19,7 +19,7 @@ public class BandServiceImpl implements BandService {
         // 밴드 생성
         Band band = Band.builder()
                 .bandName(requestDto.bandName())
-                .logoUrl(requestDto.logoUrl())
+                .logoUrl(null) // TODO: 로고 필요시 S3 업로드 로직 추가
                 .build();
 
         bandRepository.save(band);
