@@ -1,9 +1,11 @@
 package com.deulbull.performance.domain.performance.web.controller;
 
 import com.deulbull.performance.domain.performance.service.PerformanceService;
+import com.deulbull.performance.domain.performance.web.dto.PerformanceCreateRequestDto;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailResponseDto;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceSetlistResponse;
 import com.deulbull.performance.global.response.SuccessResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,15 @@ import java.util.List;
 public class PerformanceController {
 
     private final PerformanceService performanceService;
+
+    // 공연 생성 API
+    @PostMapping
+    public SuccessResponse<PerformanceDetailResponseDto> createPerformance(
+            @Valid @RequestBody PerformanceCreateRequestDto requestDto
+    ) {
+        PerformanceDetailResponseDto response = performanceService.createPerformance(requestDto);
+        return SuccessResponse.created(response);
+    }
 
     // 공연 상세 조회
     @GetMapping("/{performanceId}")
