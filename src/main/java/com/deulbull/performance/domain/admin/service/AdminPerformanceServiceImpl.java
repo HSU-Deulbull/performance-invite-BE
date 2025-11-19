@@ -1,10 +1,7 @@
 package com.deulbull.performance.domain.admin.service;
 
 import com.deulbull.performance.domain.admin.entity.Admin;
-import com.deulbull.performance.domain.admin.exception.AdminNotFoundException;
-import com.deulbull.performance.domain.admin.exception.AdminPerformanceNotFoundException;
-import com.deulbull.performance.domain.admin.exception.AdminSongNotFoundException;
-import com.deulbull.performance.domain.admin.exception.PerformanceSongNoContentException;
+import com.deulbull.performance.domain.admin.exception.*;
 import com.deulbull.performance.domain.admin.repository.AdminPerformanceRepository;
 import com.deulbull.performance.domain.admin.repository.AdminRepository;
 import com.deulbull.performance.domain.admin.web.dto.AdminCurrentSongResponseDto;
@@ -63,13 +60,8 @@ public class AdminPerformanceServiceImpl implements AdminPerformanceService {
         if (current != null) {
             Integer currOrder = current.getOrderInPerformance();
             nextEntity = performanceSongsRepository
-                    .findFirstByPerformance_IdAndOrderInPerformanceGreaterThanOrderByOrderInPerformanceAsc(
-                            performanceId, currOrder
-                    )
-                    .orElseGet(() -> performanceSongsRepository
-                            .findFirstByPerformance_IdOrderByOrderInPerformanceAsc(performanceId)
-                            .orElseThrow(AdminSongNotFoundException::new)
-                    );
+                    .findFirstByPerformance_IdAndOrderInPerformanceGreaterThanOrderByOrderInPerformanceAsc(performanceId, currOrder)
+                    .orElseThrow(PerformanceNextSongNotFoundException::new);
         } else {
             nextEntity = performanceSongsRepository
                     .findFirstByPerformance_IdOrderByOrderInPerformanceAsc(performanceId)
@@ -111,16 +103,14 @@ public class AdminPerformanceServiceImpl implements AdminPerformanceService {
                     .findFirstByPerformance_IdAndOrderInPerformanceLessThanOrderByOrderInPerformanceDesc(
                             performanceId, currOrder
                     )
-                    .orElseGet(() ->
-                            performanceSongsRepository
-                                    .findFirstByPerformance_IdOrderByOrderInPerformanceDesc(performanceId)
-                                    .orElseThrow(AdminSongNotFoundException::new)
-                    );
+                    .orElseGet(() -> {
+                        performance.setCurrentSong(null);
+                        performanceRepository.saveAndFlush(performance);
+                        throw new PerformanceSongNoContentException();
+                    });
         } else {
-            // 현재곡이 비어있다면 마지막 곡을 현재곡으로 시작
-            prevEntity = performanceSongsRepository
-                    .findFirstByPerformance_IdOrderByOrderInPerformanceDesc(performanceId)
-                    .orElseThrow(AdminSongNotFoundException::new);
+            // 현재곡이 비어있다면 이전 곡을 찾지 못함 404 ERROR return
+            throw new PerformancePreviousSongNotFoundException();
         }
 
         // current_song 갱신
