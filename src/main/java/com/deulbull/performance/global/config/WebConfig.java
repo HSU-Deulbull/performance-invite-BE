@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:3002",
                         "https://deulbul-admin.netlify.app"
                 )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowCredentials(true);
     }
 }
