@@ -41,14 +41,7 @@ public record PerformanceCreateRequestDto(
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime preSaleEndTime,
 
-        String posterFrontUrl,
-
-        String posterBackUrl,
-
         String openchatUrl,
-
-        // PerformanceImage 리스트
-        List<String> imageUrls,
 
         // PerformanceMoreLink 리스트
         @Valid

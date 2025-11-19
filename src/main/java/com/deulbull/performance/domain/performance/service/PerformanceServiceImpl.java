@@ -17,9 +17,11 @@ import com.deulbull.performance.domain.performanceSongs.repository.PerformanceSo
 import com.deulbull.performance.domain.song.entity.Song;
 import com.deulbull.performance.domain.song.exception.SongNotFoundException;
 import com.deulbull.performance.domain.song.repository.SongRepository;
+import com.deulbull.performance.global.s3.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,15 +30,22 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PerformanceServiceImpl implements PerformanceService {
+
     private final PerformanceRepository performanceRepository;
     private final PerformanceImageRepository performanceImageRepository;
     private final PerformanceMoreLinkRepository performanceMoreLinkRepository;
     private final PerformanceSongsRepository performanceSongsRepository;
     private final SongRepository songRepository;
+    private final S3Uploader s3Uploader;
 
     @Override
     @Transactional
-    public PerformanceDetailResponseDto createPerformance(PerformanceCreateRequestDto requestDto) {
+    public PerformanceDetailResponseDto createPerformance(
+            PerformanceCreateRequestDto requestDto,
+            MultipartFile posterFront,
+            MultipartFile posterBack,
+            List<MultipartFile> images) {
+
         // 1. Performance 엔티티 생성 및 저장
         Performance performance = Performance.builder()
                 .websiteName(requestDto.websiteName())
@@ -50,26 +59,59 @@ public class PerformanceServiceImpl implements PerformanceService {
                 .preSaleFee(requestDto.preSaleFee())
                 .onSiteFee(requestDto.onSiteFee())
                 .preSaleEndTime(requestDto.preSaleEndTime())
-                .posterFrontUrl(requestDto.posterFrontUrl())
-                .posterBackUrl(requestDto.posterBackUrl())
+                .posterFrontUrl(null)
+                .posterBackUrl(null)
                 .openchatUrl(requestDto.openchatUrl())
                 .currentSong(null) // 초기에는 현재 곡 없음
                 .build();
 
         performanceRepository.save(performance);
 
-        // 2. PerformanceImage 생성 및 저장
-        if (requestDto.imageUrls() != null && !requestDto.imageUrls().isEmpty()) {
-            List<PerformanceImage> images = requestDto.imageUrls().stream()
-                    .map(url -> PerformanceImage.builder()
-                            .imageUrl(url)
-                            .performance(performance)
-                            .build())
-                    .toList();
-            performanceImageRepository.saveAll(images);
+        Long performanceId = performance.getId();
+
+        // 2. S3에 포스터 업로드
+        String posterFrontUrl = null;
+        String posterBackUrl = null;
+
+        if (posterFront != null && !posterFront.isEmpty()) {
+            posterFrontUrl = s3Uploader.upload(
+                    posterFront,
+                    "performance/" + performanceId + "/poster-front"
+            );
+        }
+        if (posterBack != null && !posterBack.isEmpty()) {
+            posterBackUrl = s3Uploader.upload(
+                    posterBack,
+                    "performance/" + performanceId + "/poster-back"
+            );
         }
 
-        // 3. PerformanceMoreLink 생성 및 저장
+        // 3. 공연 이미지 S3 업로드 + PerformanceImage 저장
+        List<String> imageUrls = new ArrayList<>();
+        if (images != null && !images.isEmpty()) {
+            int index = 1;
+            for (MultipartFile image : images) {
+                if (image == null || image.isEmpty()) continue;
+
+                String url = s3Uploader.upload(
+                        image,
+                        "performance/" + performanceId + "/image" + index++
+                );
+                imageUrls.add(url);
+            }
+
+            if (!imageUrls.isEmpty()) {
+                List<PerformanceImage> performanceImages = imageUrls.stream()
+                        .map(url -> PerformanceImage.builder()
+                                .imageUrl(url)
+                                .performance(performance)
+                                .build())
+                        .toList();
+                performanceImageRepository.saveAll(performanceImages);
+            }
+        }
+
+        // 4. PerformanceMoreLink 생성 및 저장
         if (requestDto.moreLinks() != null && !requestDto.moreLinks().isEmpty()) {
             List<PerformanceMoreLink> moreLinks = requestDto.moreLinks().stream()
                     .map(dto -> PerformanceMoreLink.builder()
@@ -82,17 +124,17 @@ public class PerformanceServiceImpl implements PerformanceService {
             performanceMoreLinkRepository.saveAll(moreLinks);
         }
 
-        // 4. Song 및 PerformanceSong 생성
+        // 5. Song 및 PerformanceSong 생성
         if (requestDto.setlist() != null && !requestDto.setlist().isEmpty()) {
             List<PerformanceSong> performanceSongs = requestDto.setlist().stream()
                     .map(psDto -> {
-                        // 4-1. 곡 중복 체크 (title + artist)
+                        // 5-1. 곡 중복 체크 (title + artist)
                         Song song = songRepository.findByTitleAndArtist(
                                         psDto.song().title(),
                                         psDto.song().artist()
                                 )
                                 .orElseGet(() -> {
-                                    // 4-2. 곡이 없으면 새로 생성
+                                    // 5-2. 곡이 없으면 새로 생성
                                     Song newSong = Song.builder()
                                             .title(psDto.song().title())
                                             .artist(psDto.song().artist())
@@ -106,7 +148,7 @@ public class PerformanceServiceImpl implements PerformanceService {
                                     return songRepository.save(newSong);
                                 });
 
-                        // 4-3. PerformanceSong 생성
+                        // 5-3. PerformanceSong 생성
                         return PerformanceSong.builder()
                                 .orderInPerformance(psDto.orderInPerformance())
                                 .likes(0) // 초기 좋아요 수 0
@@ -118,8 +160,11 @@ public class PerformanceServiceImpl implements PerformanceService {
 
             performanceSongsRepository.saveAll(performanceSongs);
         }
+        // 6. Performance 엔티티에 포스터 URL 반영
+        performance.setPosterFrontUrl(posterFrontUrl);
+        performance.setPosterBackUrl(posterBackUrl);
 
-        // 5. 생성된 공연 상세 정보 반환
+        // 7. 생성된 공연 상세 정보 반환
         return getPerformanceDetail(performance.getId());
     }
 

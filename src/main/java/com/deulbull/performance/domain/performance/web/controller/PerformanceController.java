@@ -8,6 +8,7 @@ import com.deulbull.performance.global.response.SuccessResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,11 +20,14 @@ public class PerformanceController {
     private final PerformanceService performanceService;
 
     // 공연 생성 API
-    @PostMapping
+    @PostMapping(consumes = {"multipart/form-data"})
     public SuccessResponse<PerformanceDetailResponseDto> createPerformance(
-            @Valid @RequestBody PerformanceCreateRequestDto requestDto
+            @Valid @RequestPart PerformanceCreateRequestDto requestDto,
+            @RequestPart("posterFront") MultipartFile posterFront,
+            @RequestPart(value = "posterBack", required = false) MultipartFile posterBack,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-        PerformanceDetailResponseDto response = performanceService.createPerformance(requestDto);
+        PerformanceDetailResponseDto response = performanceService.createPerformance(requestDto, posterFront, posterBack, images);
         return SuccessResponse.created(response);
     }
 
