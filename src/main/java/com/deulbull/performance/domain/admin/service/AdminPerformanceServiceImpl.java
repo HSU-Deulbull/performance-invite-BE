@@ -4,6 +4,7 @@ import com.deulbull.performance.domain.admin.entity.Admin;
 import com.deulbull.performance.domain.admin.exception.AdminNotFoundException;
 import com.deulbull.performance.domain.admin.exception.AdminPerformanceNotFoundException;
 import com.deulbull.performance.domain.admin.exception.AdminSongNotFoundException;
+import com.deulbull.performance.domain.admin.exception.PerformanceSongNoContentException;
 import com.deulbull.performance.domain.admin.repository.AdminPerformanceRepository;
 import com.deulbull.performance.domain.admin.repository.AdminRepository;
 import com.deulbull.performance.domain.admin.web.dto.AdminCurrentSongResponseDto;
@@ -28,7 +29,20 @@ public class AdminPerformanceServiceImpl implements AdminPerformanceService {
     public AdminCurrentSongResponseDto getCurrentSong(Long adminId) {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(AdminNotFoundException::new);
-        CurrentSongProjection currentSong = adminPerformanceRepository.findCurrentSongDtoByAdminId(admin.getId()).orElseThrow(AdminNotFoundException::new);
+
+        Performance performance = admin.getPerformance();
+        if (performance == null) {
+            throw new AdminPerformanceNotFoundException();
+        }
+
+        if (performance.getCurrentSong() == null) {
+            throw new PerformanceSongNoContentException();
+        }
+
+        CurrentSongProjection currentSong = adminPerformanceRepository
+                .findCurrentSongDtoByAdminId(admin.getId())
+                .orElseThrow(AdminSongNotFoundException::new);
+
         return new AdminCurrentSongResponseDto(currentSong.getTitle(), currentSong.getArtist(), currentSong.getAlbumImgUrl());
     }
 
