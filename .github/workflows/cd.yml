@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["CI with Gradle"]
     types: [completed]
-    branches: [main]
+    branches: [develop, main]
 
 permissions:
   contents: read
@@ -14,7 +14,7 @@ env:
 
 jobs:
   deploy:
-    name: Deploy to Production Server
+    name: Deploy to Server
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,29 +30,43 @@ jobs:
           script: |
             set -e
 
-            cd /home/${{ secrets.SERVER_USER }}
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            if [ "$BRANCH" = "main" ]; then
+              NAME="deulbull"
+              PORT=8080
+              PROFILE="prod"
+              DDL_AUTO="none"
+            else
+              NAME="deulbull-dev"
+              PORT=8081
+              PROFILE="dev"
+              DDL_AUTO="update"
+            fi
 
-            # 환경 변수 파일 업데이트
-            cat > deulbull-prod.env << 'EOF'
+            # 환경 변수 파일 생성 (ENV_FILE에서 가져오되 DDL과 Profile 추가)
+            cat > /home/${{ secrets.SERVER_USER }}/${NAME}.env << 'EOF'
             ${{ secrets.ENV_FILE }}
             EOF
 
-            echo "SPRING_PROFILES_ACTIVE=prod" >> deulbull-prod.env
-            echo "SPRING_JPA_HIBERNATE_DDL_AUTO=none" >> deulbull-prod.env
+            # DDL 설정과 Profile 추가
+            echo "SPRING_PROFILES_ACTIVE=${PROFILE}" >> /home/${{ secrets.SERVER_USER }}/${NAME}.env
+            echo "SPRING_JPA_HIBERNATE_DDL_AUTO=${DDL_AUTO}" >> /home/${{ secrets.SERVER_USER }}/${NAME}.env
 
-            # Docker 로그인
             if [ -n "${{ secrets.DOCKER_PASSWORD }}" ]; then
               echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             fi
 
-            echo "[1/4] Pull latest image..."
+            echo "[1/3] Pull latest image..."
             docker pull ${{ env.IMAGE }}:latest
 
-            echo "[2/4] Restart Spring app..."
-            docker-compose up -d --no-deps deulbull-prod
+            echo "[2/3] Restart container..."
+            docker stop $NAME || true
+            docker rm $NAME || true
+            docker run -d --name $NAME \
+              --env-file /home/${{ secrets.SERVER_USER }}/${NAME}.env \
+              -p ${PORT}:8080 \
+              --restart always \
+              ${{ env.IMAGE }}:latest
 
-            echo "[3/4] Check status..."
-            docker-compose ps
-
-            echo "[4/4] Cleanup..."
+            echo "[3/3] Cleanup..."
             docker image prune -f
