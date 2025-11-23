@@ -61,6 +61,7 @@ jobs:
             docker pull ${{ env.IMAGE }}:latest
 
             echo "[2/4] Restart Spring app..."
+            docker compose rm -f ${NAME} || true
             docker compose up -d --no-deps ${NAME}
 
             echo "[3/4] Check status..."
