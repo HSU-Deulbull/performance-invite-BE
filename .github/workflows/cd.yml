@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["CI with Gradle"]
     types: [completed]
-    branches: [main]
+    branches: [develop, main]
 
 permissions:
   contents: read
@@ -14,7 +14,7 @@ env:
 
 jobs:
   deploy:
-    name: Deploy to Production Server
+    name: Deploy to Server
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,15 +30,27 @@ jobs:
           script: |
             set -e
 
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            if [ "$BRANCH" = "main" ]; then
+              NAME="deulbull-prod"
+              PROFILE="prod"
+              DDL_AUTO="none"
+            else
+              NAME="deulbull-dev"
+              PROFILE="dev"
+              DDL_AUTO="update"
+            fi
+
             cd /home/${{ secrets.SERVER_USER }}
 
-            # 환경 변수 파일 업데이트
-            cat > deulbull-prod.env << 'EOF'
+            # 환경 변수 파일 생성
+            cat > ${NAME}.env << 'EOF'
             ${{ secrets.ENV_FILE }}
             EOF
 
-            echo "SPRING_PROFILES_ACTIVE=prod" >> deulbull-prod.env
-            echo "SPRING_JPA_HIBERNATE_DDL_AUTO=none" >> deulbull-prod.env
+            # DDL 설정과 Profile 추가
+            echo "SPRING_PROFILES_ACTIVE=${PROFILE}" >> ${NAME}.env
+            echo "SPRING_JPA_HIBERNATE_DDL_AUTO=${DDL_AUTO}" >> ${NAME}.env
 
             # Docker 로그인
             if [ -n "${{ secrets.DOCKER_PASSWORD }}" ]; then
@@ -49,7 +61,7 @@ jobs:
             docker pull ${{ env.IMAGE }}:latest
 
             echo "[2/4] Restart Spring app..."
-            docker-compose up -d --no-deps deulbull-prod
+            docker-compose up -d --no-deps ${NAME}
 
             echo "[3/4] Check status..."
             docker-compose ps
