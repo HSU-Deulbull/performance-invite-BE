@@ -19,6 +19,7 @@ import com.deulbull.performance.domain.song.exception.SongNotFoundException;
 import com.deulbull.performance.domain.song.repository.SongRepository;
 import com.deulbull.performance.global.s3.S3Uploader;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -169,6 +170,8 @@ public class PerformanceServiceImpl implements PerformanceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "performanceDetail", key = "#performanceId")
     public PerformanceDetailResponseDto getPerformanceDetail(Long performanceId) {
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new); // 404: 존재하지 않는 공연
@@ -233,6 +236,8 @@ public class PerformanceServiceImpl implements PerformanceService {
 
     // 공연 셋리스트 조회
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "performanceSetlist", key = "#performanceId")
     public PerformanceSetlistResponse getPerformanceSetlist(Long performanceId) {
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new); // 404: 존재하지 않는 공연

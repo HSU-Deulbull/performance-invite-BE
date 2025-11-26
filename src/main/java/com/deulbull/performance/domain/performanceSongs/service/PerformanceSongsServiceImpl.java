@@ -11,6 +11,8 @@ import com.deulbull.performance.domain.performanceSongs.web.dto.PerformanceSongs
 import com.deulbull.performance.domain.performanceSongs.web.dto.PerformanceSongsLikeResponseDto;
 import com.deulbull.performance.domain.song.entity.Song;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,8 @@ public class PerformanceSongsServiceImpl implements PerformanceSongsService {
     private final BandSessionRepository bandSessionRepository;
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "trackDetail", key = "#performanceSongId")
     public PerformanceSongsDetailResponseDto getPerformanceSongsDetail(Long performanceSongId) {
         PerformanceSong ps = performanceSongsRepository.findWithSongById(performanceSongId)
                 .orElseThrow(PerformanceSongsNotFoundException::new);
@@ -62,8 +66,9 @@ public class PerformanceSongsServiceImpl implements PerformanceSongsService {
         return new PerformanceSongsDetailResponseDto(track, team);
     }
 
-    @Transactional
     @Override
+    @Transactional
+    @CacheEvict(value = "trackDetail", key = "#performanceSongId")
     public PerformanceSongsLikeResponseDto getPerformanceSongsLike(Long performanceSongId, PerformanceSongsLikeRequestDto liked) {
         int delta = liked.liked() ? 1 : -1; // true: +1 / false -1
         int updated = performanceSongsRepository.likes(performanceSongId, delta);

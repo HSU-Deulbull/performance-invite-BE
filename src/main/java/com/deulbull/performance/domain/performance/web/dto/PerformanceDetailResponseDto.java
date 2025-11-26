@@ -1,5 +1,6 @@
 package com.deulbull.performance.domain.performance.web.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 public record PerformanceDetailResponseDto(
@@ -24,10 +25,10 @@ public record PerformanceDetailResponseDto(
         String location, // 공연장 위치
 
         List<MoreLinkDto> moreLinks    // 추가 링크 리스트 (type, name, url)
-) {
+) implements Serializable {
     public record MoreLinkDto(
             String type,
             String name,
             String url
-    ) {}
+    ) implements Serializable {}
 }
