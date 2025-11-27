@@ -7,7 +7,7 @@ import com.deulbull.performance.domain.booking.exception.OpenChatUrlNotFoundExce
 import com.deulbull.performance.domain.booking.repository.BookingRepository;
 import com.deulbull.performance.domain.booking.web.dto.BookingRequestDto;
 import com.deulbull.performance.domain.booking.web.dto.BookingUpdateRequestDto;
-import com.deulbull.performance.domain.booking.web.dto.OpenChatUrlResponse;
+import com.deulbull.performance.domain.booking.web.dto.PreBookingInfoResponse;
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.performance.exception.PerformanceNotFoundException;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
@@ -51,7 +51,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public OpenChatUrlResponse getOpenChatUrl(Long performanceId) {
+    public PreBookingInfoResponse getPreBookingInfo(Long performanceId) {
         // 1. 공연 조회
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new);
@@ -62,8 +62,16 @@ public class BookingServiceImpl implements BookingService {
             throw new OpenChatUrlNotFoundException();
         }
 
-        // 3. 응답 반환
-        return new OpenChatUrlResponse(openchatUrl);
+        // 3. 사전 예매 관련 정보 응답 반환
+        return new PreBookingInfoResponse(
+                openchatUrl,
+                performance.getPreSaleEndTime(),
+                performance.getPreSaleFee(),
+                performance.getOnSiteFee(),
+                performance.getBankAccount(),
+                performance.getKakaopayUrl(),
+                performance.getNaverpayUrl()
+        );
     }
 
     @Override
