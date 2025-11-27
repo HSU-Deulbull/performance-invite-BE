@@ -17,8 +17,8 @@ public class S3Uploader {
 
     private final S3Client s3Client;
 
-    //@Value("${cloud.aws.s3.bucket}")
-    private String bucket = "deulbull";
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
 
     public String upload(MultipartFile file, String keyPrefix) {
         String ext = getExtension(file.getOriginalFilename());
