@@ -54,9 +54,10 @@ jobs:
             docker pull ${{ env.IMAGE }}:${{ github.sha }}
 
             echo "[2/4] Restart Spring app..."
-            docker compose rm -f ${NAME} || true
-            docker compose up -d --no-deps ${NAME}
-
+            docker compose stop ${NAME}
+            docker compose rm -f ${NAME}
+            docker compose up -d ${NAME}
+            
             echo "[3/4] Check status..."
             docker compose ps
 
