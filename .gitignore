@@ -55,4 +55,3 @@ replay_pid*
 .env.*
 application-secret.yml
 application-dev.yml
-application-prod.yml
