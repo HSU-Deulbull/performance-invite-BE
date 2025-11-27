@@ -3,10 +3,17 @@ spring:
     name: deulbull-performance-api
   profiles:
     active: local
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 server:
   servlet:
     context-path: /api
+  tomcat:
+    max-swallow-size: 50MB
+    max-http-form-post-size: 50MB
 
 management:
   endpoints:
