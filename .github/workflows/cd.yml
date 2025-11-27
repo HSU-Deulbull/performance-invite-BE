@@ -16,10 +16,8 @@ jobs:
   deploy:
     name: Deploy to Server
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
+    steps:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -30,42 +28,34 @@ jobs:
           script: |
             set -e
 
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
-            if [ "$BRANCH" = "main" ]; then
-              NAME="deulbull-prod"
-              PROFILE="prod"
-              DDL_AUTO="none"
-            else
-              NAME="deulbull-dev"
-              PROFILE="dev"
-              DDL_AUTO="update"
-            fi
+            NAME="deulbull-prod"
+            PROFILE="prod"
+            DDL_AUTO="none"
+            IMAGE="${{ env.IMAGE }}:${{ github.sha }}"
 
             cd /home/${{ secrets.SERVER_USER }}
 
-            # 환경 변수 파일 생성
-            cat > ${NAME}.env << 'EOF'
+            echo "Create env file..."
+            cat > ${NAME}.env << EOF
             ${{ secrets.ENV_FILE }}
+            SPRING_PROFILES_ACTIVE=${PROFILE}
+            SPRING_JPA_HIBERNATE_DDL_AUTO=${DDL_AUTO}
             EOF
 
-            # DDL 설정과 Profile 추가
-            echo "SPRING_PROFILES_ACTIVE=${PROFILE}" >> ${NAME}.env
-            echo "SPRING_JPA_HIBERNATE_DDL_AUTO=${DDL_AUTO}" >> ${NAME}.env
+            echo "Docker login..."
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-            # Docker 로그인
-            if [ -n "${{ secrets.DOCKER_PASSWORD }}" ]; then
-              echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            fi
+            echo "[1/4] Pull new image..."
+            docker pull $IMAGE
 
-            echo "[1/4] Pull latest image..."
-            docker pull ${{ env.IMAGE }}:latest
+            echo "[2/4] Stop old containers..."
+            docker compose down
 
-            echo "[2/4] Restart Spring app..."
-            docker compose rm -f ${NAME} || true
-            docker compose up -d --no-deps ${NAME}
+            echo "[3/4] Start new containers..."
+            docker compose up -d
 
-            echo "[3/4] Check status..."
+            echo "[4/4] Check status..."
             docker compose ps
 
-            echo "[4/4] Cleanup..."
+            echo "Cleanup unused images..."
             docker image prune -f
