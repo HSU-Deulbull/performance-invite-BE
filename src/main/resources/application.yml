@@ -1,25 +1,19 @@
-# 공통
 spring:
   application:
     name: deulbull-performance-api
   profiles:
-    active: dev  # 기본은 개발환경 (서버에서는 prod로 덮어씀)
-  config:
-    import: optional:application-secret.yml
+    active: local
 
 server:
   servlet:
     context-path: /api
 
-# Actuator & Prometheus
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus,metrics
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
-    tags:
-      application: ${spring.application.name}
