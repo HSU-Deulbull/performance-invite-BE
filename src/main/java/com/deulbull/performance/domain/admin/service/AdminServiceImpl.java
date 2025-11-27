@@ -2,6 +2,7 @@ package com.deulbull.performance.domain.admin.service;
 
 import com.deulbull.performance.domain.admin.entity.Admin;
 import com.deulbull.performance.domain.admin.entity.enums.AdminRole;
+import com.deulbull.performance.domain.admin.exception.AdminDuplicatePasswordException;
 import com.deulbull.performance.domain.admin.exception.AdminInvalidPasswordException;
 import com.deulbull.performance.domain.admin.exception.AdminNotFoundException;
 import com.deulbull.performance.domain.admin.repository.AdminRepository;
@@ -85,10 +86,19 @@ public class AdminServiceImpl implements AdminService {
         Band band = bandRepository.findById(bandId)
                 .orElseThrow(BandNotFoundException::new);
 
-        // 3. 비밀번호 암호화
+        // 3. 비밀번호 중복 검사
+        boolean isDuplicatePassword = adminRepository.findAll()
+                .stream()
+                .anyMatch(admin -> passwordEncoder.matches(password, admin.getPassword()));
+
+        if (isDuplicatePassword) {
+            throw new AdminDuplicatePasswordException();
+        }
+
+        // 4. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(password);
 
-        // 4. Admin 생성
+        // 5. Admin 생성
         Admin admin = Admin.builder()
                 .role(role)
                 .password(encodedPassword)
@@ -96,13 +106,13 @@ public class AdminServiceImpl implements AdminService {
                 .band(band)
                 .build();
 
-        // 5. DB에 저장
+        // 6. DB에 저장
         Admin savedAdmin = adminRepository.save(admin);
 
-        // 6. JWT 토큰 생성
+        // 7. JWT 토큰 생성
         String token = jwtTokenProvider.createToken(savedAdmin);
 
-        // 7. 반환
+        // 8. 반환
         return new AdminSignupResponseDto(token);
     }
 
