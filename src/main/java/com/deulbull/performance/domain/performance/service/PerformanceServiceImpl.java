@@ -1,5 +1,10 @@
 package com.deulbull.performance.domain.performance.service;
 
+import com.deulbull.performance.domain.band.entity.BandSession;
+import com.deulbull.performance.domain.band.entity.Person;
+import com.deulbull.performance.domain.band.entity.enums.SessionType;
+import com.deulbull.performance.domain.band.repository.BandSessionRepository;
+import com.deulbull.performance.domain.band.repository.PersonRepository;
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.performance.entity.PerformanceImage;
 import com.deulbull.performance.domain.performance.entity.PerformanceMoreLink;
@@ -8,6 +13,7 @@ import com.deulbull.performance.domain.performance.repository.PerformanceImageRe
 import com.deulbull.performance.domain.performance.repository.PerformanceMoreLinkRepository;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceCreateRequestDto;
+import com.deulbull.performance.domain.performance.web.dto.PerformanceCreateRequestDto.MembersDto;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailResponseDto;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceDetailResponseDto.MoreLinkDto;
 import com.deulbull.performance.domain.performance.web.dto.PerformanceSetlistResponse;
@@ -36,6 +42,8 @@ public class PerformanceServiceImpl implements PerformanceService {
     private final PerformanceMoreLinkRepository performanceMoreLinkRepository;
     private final PerformanceSongsRepository performanceSongsRepository;
     private final SongRepository songRepository;
+    private final PersonRepository personRepository;
+    private final BandSessionRepository bandSessionRepository;
     private final S3Uploader s3Uploader;
 
     @Override
@@ -62,6 +70,11 @@ public class PerformanceServiceImpl implements PerformanceService {
                 .posterFrontUrl(null)
                 .posterBackUrl(null)
                 .openchatUrl(requestDto.openchatUrl())
+                .bankName(requestDto.bankName())
+                .bankAccount(requestDto.bankAccount())
+                .accountHolder(requestDto.accountHolder())
+                .kakaopayUrl(requestDto.kakaopayUrl())
+                .naverpayUrl(requestDto.naverpayUrl())
                 .currentSong(null) // 초기에는 현재 곡 없음
                 .build();
 
@@ -126,39 +139,41 @@ public class PerformanceServiceImpl implements PerformanceService {
 
         // 5. Song 및 PerformanceSong 생성
         if (requestDto.setlist() != null && !requestDto.setlist().isEmpty()) {
-            List<PerformanceSong> performanceSongs = requestDto.setlist().stream()
-                    .map(psDto -> {
-                        // 5-1. 곡 중복 체크 (title + artist)
-                        Song song = songRepository.findByTitleAndArtist(
-                                        psDto.song().title(),
-                                        psDto.song().artist()
-                                )
-                                .orElseGet(() -> {
-                                    // 5-2. 곡이 없으면 새로 생성
-                                    Song newSong = Song.builder()
-                                            .title(psDto.song().title())
-                                            .artist(psDto.song().artist())
-                                            .album(psDto.song().album())
-                                            .releaseDate(psDto.song().releaseDate())
-                                            .genre(psDto.song().genre())
-                                            .youtubeUrl(psDto.song().youtubeUrl())
-                                            .albumImgUrl(psDto.song().albumImgUrl())
-                                            .lyrics(psDto.song().lyrics())
-                                            .build();
-                                    return songRepository.save(newSong);
-                                });
+            for (var psDto : requestDto.setlist()) {
+                // 5-1. 곡 중복 체크 (title + artist)
+                Song song = songRepository.findByTitleAndArtist(
+                                psDto.song().title(),
+                                psDto.song().artist()
+                        )
+                        .orElseGet(() -> {
+                            // 5-2. 곡이 없으면 새로 생성
+                            Song newSong = Song.builder()
+                                    .title(psDto.song().title())
+                                    .artist(psDto.song().artist())
+                                    .album(psDto.song().album())
+                                    .releaseDate(psDto.song().releaseDate())
+                                    .genre(psDto.song().genre())
+                                    .youtubeUrl(psDto.song().youtubeUrl())
+                                    .albumImgUrl(psDto.song().albumImgUrl())
+                                    .lyrics(psDto.song().lyrics())
+                                    .build();
+                            return songRepository.save(newSong);
+                        });
 
-                        // 5-3. PerformanceSong 생성
-                        return PerformanceSong.builder()
-                                .orderInPerformance(psDto.orderInPerformance())
-                                .likes(0) // 초기 좋아요 수 0
-                                .performance(performance)
-                                .song(song)
-                                .build();
-                    })
-                    .toList();
+                // 5-3. PerformanceSong 생성 및 저장
+                PerformanceSong performanceSong = PerformanceSong.builder()
+                        .orderInPerformance(psDto.orderInPerformance())
+                        .likes(0) // 초기 좋아요 수 0
+                        .performance(performance)
+                        .song(song)
+                        .build();
+                performanceSongsRepository.save(performanceSong);
 
-            performanceSongsRepository.saveAll(performanceSongs);
+                // 5-4. BandSession 생성 (members 정보 처리)
+                if (psDto.members() != null) {
+                    createBandSessions(performanceSong, psDto.members());
+                }
+            }
         }
         // 6. Performance 엔티티에 포스터 URL 반영
         performance.setPosterFrontUrl(posterFrontUrl);
@@ -256,5 +271,104 @@ public class PerformanceServiceImpl implements PerformanceService {
                 : -1;
 
         return new PerformanceSetlistResponse(currentSongId, setList);
+    }
+
+    // BandSession 생성 헬퍼 메서드
+    private void createBandSessions(PerformanceSong performanceSong, MembersDto membersDto) {
+        List<BandSession> bandSessions = new ArrayList<>();
+
+        // Vocal
+        if (membersDto.vocal() != null) {
+            for (String personName : membersDto.vocal()) {
+                Person person = getOrCreatePerson(personName);
+                bandSessions.add(BandSession.builder()
+                        .sessionType(SessionType.VOCAL)
+                        .performanceSong(performanceSong)
+                        .band(null) // Band 정보는 현재 없음
+                        .person(person)
+                        .build());
+            }
+        }
+
+        // Guitar1
+        if (membersDto.guitar1() != null) {
+            for (String personName : membersDto.guitar1()) {
+                Person person = getOrCreatePerson(personName);
+                bandSessions.add(BandSession.builder()
+                        .sessionType(SessionType.FIRSTGUITAR)
+                        .performanceSong(performanceSong)
+                        .band(null)
+                        .person(person)
+                        .build());
+            }
+        }
+
+        // Guitar2
+        if (membersDto.guitar2() != null) {
+            for (String personName : membersDto.guitar2()) {
+                Person person = getOrCreatePerson(personName);
+                bandSessions.add(BandSession.builder()
+                        .sessionType(SessionType.SECONDGUITAR)
+                        .performanceSong(performanceSong)
+                        .band(null)
+                        .person(person)
+                        .build());
+            }
+        }
+
+        // Bass
+        if (membersDto.bass() != null) {
+            for (String personName : membersDto.bass()) {
+                Person person = getOrCreatePerson(personName);
+                bandSessions.add(BandSession.builder()
+                        .sessionType(SessionType.BASE)
+                        .performanceSong(performanceSong)
+                        .band(null)
+                        .person(person)
+                        .build());
+            }
+        }
+
+        // Drum
+        if (membersDto.drum() != null) {
+            for (String personName : membersDto.drum()) {
+                Person person = getOrCreatePerson(personName);
+                bandSessions.add(BandSession.builder()
+                        .sessionType(SessionType.DRUM)
+                        .performanceSong(performanceSong)
+                        .band(null)
+                        .person(person)
+                        .build());
+            }
+        }
+
+        // Keyboard
+        if (membersDto.keyboard() != null) {
+            for (String personName : membersDto.keyboard()) {
+                Person person = getOrCreatePerson(personName);
+                bandSessions.add(BandSession.builder()
+                        .sessionType(SessionType.PIANO)
+                        .performanceSong(performanceSong)
+                        .band(null)
+                        .person(person)
+                        .build());
+            }
+        }
+
+        // 모든 BandSession 저장
+        if (!bandSessions.isEmpty()) {
+            bandSessionRepository.saveAll(bandSessions);
+        }
+    }
+
+    // Person 조회 또는 생성
+    private Person getOrCreatePerson(String name) {
+        return personRepository.findByName(name)
+                .orElseGet(() -> {
+                    Person newPerson = Person.builder()
+                            .name(name)
+                            .build();
+                    return personRepository.save(newPerson);
+                });
     }
 }

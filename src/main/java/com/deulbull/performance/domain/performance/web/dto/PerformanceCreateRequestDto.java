@@ -43,6 +43,16 @@ public record PerformanceCreateRequestDto(
 
         String openchatUrl,
 
+        String bankName,
+
+        String bankAccount,
+
+        String accountHolder,
+
+        String kakaopayUrl,
+
+        String naverpayUrl,
+
         // PerformanceMoreLink 리스트
         @Valid
         List<MoreLinkCreateDto> moreLinks,
@@ -71,7 +81,19 @@ public record PerformanceCreateRequestDto(
 
             @Valid
             @NotNull(message = "곡 정보는 필수 입력 항목입니다.")
-            SongCreateDto song
+            SongCreateDto song,
+
+            MembersDto members
+    ) {}
+
+    // 곡별 멤버 정보 DTO
+    public record MembersDto(
+            List<String> vocal,
+            List<String> guitar1,
+            List<String> guitar2,
+            List<String> bass,
+            List<String> drum,
+            List<String> keyboard
     ) {}
 
     // 곡 정보 DTO
