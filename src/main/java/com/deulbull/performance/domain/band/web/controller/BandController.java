@@ -18,7 +18,7 @@ public class BandController {
     // 밴드 생성 API
     @PostMapping
     public SuccessResponse<BandResponseDto> createBand(
-            @Valid @RequestBody BandRequestDto requestDto
+            @Valid @ModelAttribute BandRequestDto requestDto
     ) {
         BandResponseDto response = bandService.createBand(requestDto);
         return SuccessResponse.created(response);
