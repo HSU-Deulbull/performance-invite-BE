@@ -1,13 +1,13 @@
 package com.deulbull.performance.domain.booking.web.dto;
 
-import java.time.LocalDateTime;
-
 public record PreBookingInfoResponse(
         String openChatUrl,
-        LocalDateTime preSaleEndTime,
-        Integer preSaleFee,
-        Integer onSiteFee,
+        String preSaleEndTime,
+        String preSaleFee,
+        String onSiteFee,
+        String bankName,
         String bankAccount,
+        String accountHolder,
         String kakaopayUrl,
         String naverpayUrl
 ) {

@@ -65,12 +65,14 @@ public class BookingServiceImpl implements BookingService {
         // 3. 사전 예매 관련 정보 응답 반환
         return new PreBookingInfoResponse(
                 openchatUrl,
-                performance.getPreSaleEndTime(),
-                performance.getPreSaleFee(),
-                performance.getOnSiteFee(),
-                performance.getBankAccount(),
-                performance.getKakaopayUrl(),
-                performance.getNaverpayUrl()
+                performance.getPreSaleEndTime() != null ? performance.getPreSaleEndTime().toString() : "",
+                performance.getPreSaleFee() != null ? performance.getPreSaleFee().toString() : "",
+                performance.getOnSiteFee() != null ? performance.getOnSiteFee().toString() : "",
+                performance.getBankName() != null ? performance.getBankName() : "",
+                performance.getBankAccount() != null ? performance.getBankAccount() : "",
+                performance.getAccountHolder() != null ? performance.getAccountHolder() : "",
+                performance.getKakaopayUrl() != null ? performance.getKakaopayUrl() : "",
+                performance.getNaverpayUrl() != null ? performance.getNaverpayUrl() : ""
         );
     }
 
