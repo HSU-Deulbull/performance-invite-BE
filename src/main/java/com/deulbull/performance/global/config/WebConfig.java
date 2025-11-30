@@ -12,10 +12,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         // 사용자 페이지
                         "http://localhost:3000",
-                        "https://deulbul.netlify.app",
+                        "https://deulbull.netlify.app",
                         // 관리자 페이지
                         "http://localhost:3002",
-                        "https://deulbul-admin.netlify.app"
+                        "https://deulbull-admin.netlify.app"
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowCredentials(true);
