@@ -51,12 +51,11 @@ jobs:
             fi
 
             echo "[1/4] Pull new image..."
-            docker pull ${{ env.IMAGE }}:${{ github.sha }}
+            docker pull ${{ env.IMAGE }}:latest
 
             echo "[2/4] Restart Spring app..."
-            docker compose stop ${NAME}
-            docker compose rm -f ${NAME}
-            docker compose up -d ${NAME}
+            docker compose pull ${NAME}
+            docker compose up -d --force-recreate --no-deps ${NAME}
             
             echo "[3/4] Check status..."
             docker compose ps
