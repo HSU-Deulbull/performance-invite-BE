@@ -36,6 +36,7 @@ public class Performance extends BaseEntity {
     private String accountHolder; // 예금주
     private String kakaopayUrl; // 카카오페이 결제 URL
     private String naverpayUrl; // 네이버페이 결제 URL
+    private String setlistUrl; // 셋리스트 이미지 또는 파일 URL
 
     @ManyToOne
     @JoinColumn(name = "current_song_id")
