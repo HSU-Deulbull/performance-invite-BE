@@ -1,14 +1,12 @@
 package com.deulbull.performance.global.s3;
 
-import com.luciad.imageio.webp.WebPWriteParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -30,96 +28,127 @@ public class S3Uploader {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+
     public String upload(MultipartFile file, String keyPrefix) {
 
+        String originalExt = getExtension(file.getOriginalFilename()).toLowerCase();
+        long fileSize = file.getSize();
+
+        byte[] finalBytes;
+        String finalExt = originalExt;
+
         try {
-            // 1) MultipartFile → BufferedImage
-            BufferedImage image = ImageIO.read(file.getInputStream());
-            if (image == null) {
-                throw new RuntimeException("이미지 변환 실패: 지원되지 않는 포맷");
+            // PNG가 너무 클 때만 JPEG로 변환
+            if (originalExt.equals("png") && fileSize > 1_000_000) { // 1MB 이상
+                BufferedImage image = ImageIO.read(file.getInputStream());
+                finalBytes = convertPngToJpeg(image, 0.9f); // 품질 90%
+                finalExt = "jpg";
+            } else {
+                // 변환 없이 그대로 사용
+                finalBytes = file.getBytes();
             }
 
-            // 2) WebP로 변환
-            byte[] webpBytes = convertToWebP(image, 0.9f); // 90% 품질
+            // S3 저장 키
+            String key = keyPrefix + "-" + UUID.randomUUID() + "." + finalExt;
 
-            // 3) 파일명 .webp로 저장
-            String key = keyPrefix + "-" + UUID.randomUUID() + ".webp";
-
-            // 4) S3 업로드
             s3Client.putObject(
                     PutObjectRequest.builder()
                             .bucket(bucket)
                             .key(key)
-                            .contentType("image/webp")
+                            .contentType("image/" + finalExt)
                             .cacheControl("max-age=2592000, public")
                             .build(),
-                    RequestBody.fromBytes(webpBytes)
+                    RequestBody.fromBytes(finalBytes)
             );
 
-            // 5) 반환 URL
             return "https://" + bucket + ".s3.amazonaws.com/" + key;
 
         } catch (IOException e) {
-            throw new RuntimeException("WebP 변환 또는 S3 업로드 실패", e);
+            throw new RuntimeException("이미지 처리 또는 S3 업로드 실패", e);
         }
     }
 
-    // S3에서 파일 삭제
-    public void delete(String fileUrl) {
-        try {
-            // URL에서 키 추출
-            String key = extractKeyFromUrl(fileUrl);
 
-            s3Client.deleteObject(
-                    DeleteObjectRequest.builder()
-                            .bucket(bucket)
-                            .key(key)
-                            .build()
-            );
 
-            System.out.println("[S3 삭제 성공] key=" + key);
-        } catch (Exception e) {
-            System.out.println("[S3 삭제 실패] url=" + fileUrl + ", error=" + e.getMessage());
-            // 삭제 실패해도 예외를 던지지 않음 (이미 삭제된 파일일 수 있음)
-        }
-    }
+    // PNG → JPEG 변환
+    private byte[] convertPngToJpeg(BufferedImage image, float quality) throws IOException {
 
-    // URL에서 S3 키 추출
-    private String extractKeyFromUrl(String fileUrl) {
-        // https://bucket-name.s3.amazonaws.com/key 형식에서 key 추출
-        if (fileUrl == null || fileUrl.isEmpty()) {
-            return "";
-        }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        String[] parts = fileUrl.split(bucket + ".s3.amazonaws.com/");
-        if (parts.length > 1) {
-            return parts[1];
-        }
-
-        return "";
-    }
-
-    // WebP 변환 함수
-    private byte[] convertToWebP(BufferedImage image, float quality) throws IOException {
-
-        Iterator<ImageWriter> writers = ImageIO.getImageWritersByMIMEType("image/webp");
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
         if (!writers.hasNext()) {
-            throw new IllegalStateException("WebP ImageWriter를 찾을 수 없습니다.");
+            throw new IllegalStateException("JPEG ImageWriter를 찾을 수 없습니다.");
         }
 
         ImageWriter writer = writers.next();
+        ImageWriteParam param = writer.getDefaultWriteParam();
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        param.setCompressionQuality(quality);
+
         MemoryCacheImageOutputStream output = new MemoryCacheImageOutputStream(baos);
         writer.setOutput(output);
 
-        WebPWriteParam writeParam = new WebPWriteParam(writer.getLocale());
-        writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        writeParam.setCompressionQuality(quality); // 0.0 ~ 1.0
-
-        writer.write(null, new IIOImage(image, null, null), writeParam);
+        writer.write(null, new IIOImage(image, null, null), param);
         writer.dispose();
 
         return baos.toByteArray();
     }
+
+
+
+    // 단일 삭제
+    public void delete(String fileUrl) {
+        try {
+            String key = extractKeyFromUrl(fileUrl);
+
+            if (!key.isEmpty()) {
+                s3Client.deleteObject(
+                        DeleteObjectRequest.builder()
+                                .bucket(bucket)
+                                .key(key)
+                                .build()
+                );
+            }
+
+        } catch (Exception ignored) {}
+    }
+
+
+    // URL → key 추출
+    private String extractKeyFromUrl(String fileUrl) {
+        if (fileUrl == null) return "";
+        String[] parts = fileUrl.split(bucket + ".s3.amazonaws.com/");
+        return (parts.length > 1) ? parts[1] : "";
+    }
+
+
+    private String getExtension(String filename) {
+        if (filename == null) return "dat";
+        int idx = filename.lastIndexOf('.');
+        if (idx == -1) return "dat";
+        return filename.substring(idx + 1);
+    }
+
+    // 폴더 삭제
+    public void deleteFolder(String prefix) {
+        ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                .bucket(bucket)
+                .prefix(prefix)
+                .build();
+
+        ListObjectsV2Response listResponse = s3Client.listObjectsV2(listRequest);
+
+        for (S3Object obj : listResponse.contents()) {
+            s3Client.deleteObject(
+                    DeleteObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(obj.key())
+                            .build()
+            );
+        }
+
+        System.out.println("[S3 폴더 삭제 완료] prefix=" + prefix);
+    }
+
 }

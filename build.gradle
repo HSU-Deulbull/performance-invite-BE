@@ -63,9 +63,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
-	// webp
-//	implementation 'com.luciad.imageio-webp:imageio-webp:0.8.1'
-	implementation 'com.github.gotson:webp-imageio:0.2.2'
+	// image compress
+	implementation 'org.imgscalr:imgscalr-lib:4.2'
 
 
 }

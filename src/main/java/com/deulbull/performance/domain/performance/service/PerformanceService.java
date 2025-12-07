@@ -20,4 +20,7 @@ public interface PerformanceService {
 
     // 공연 셋리스트 조회
     PerformanceSetlistResponse getPerformanceSetlist(Long performanceId);
+
+    // 공연 이미지 교체
+    void replacePerformanceImages(Long performanceId, List<MultipartFile> newImages);
 }

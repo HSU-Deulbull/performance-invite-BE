@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/performances")
@@ -47,5 +48,15 @@ public class PerformanceController {
     ){
         PerformanceSetlistResponse response = performanceService.getPerformanceSetlist(performanceId);
         return SuccessResponse.ok(response);
+    }
+
+    // 공연 이미지 교체
+    @PutMapping(value = "/{performanceId}/images", consumes = {"multipart/form-data"})
+    public SuccessResponse<Void> replacePerformanceImages(
+            @PathVariable Long performanceId,
+            @RequestPart("images") List<MultipartFile> images
+    ) {
+        performanceService.replacePerformanceImages(performanceId, images);
+        return SuccessResponse.ok(null);
     }
 }
