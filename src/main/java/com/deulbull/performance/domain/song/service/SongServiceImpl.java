@@ -48,26 +48,26 @@ public class SongServiceImpl implements SongService {
         for (int i = 0; i < songInfos.size(); i++) {
             SongCreateRequestDto.SongInfo songInfo = songInfos.get(i);
 
-            // 1. Song 엔티티 생성
-            Song song = Song.builder()
-                    .artist(songInfo.artist())
-                    .title(songInfo.title())
-                    .album(songInfo.album())
-                    .releaseDate(parseDate(songInfo.releaseDate()))
-                    .genre(songInfo.genre())
-                    .youtubeUrl(songInfo.youtubeUrl())
-                    .lyrics(songInfo.lyrics())
-                    .albumImgUrl(null) // 초기값 null
-                    .build();
+            // 1. 같은 title의 Song이 있는지 확인하고, 있으면 수정, 없으면 생성
+            Song song = songRepository.findByTitleAndArtist(songInfo.title(), songInfo.artist())
+                    .orElseGet(() -> Song.builder().build());
+
+            // 2. Song 정보 업데이트
+            song.setArtist(songInfo.artist());
+            song.setTitle(songInfo.title());
+            song.setAlbum(songInfo.album());
+            song.setReleaseDate(parseDate(songInfo.releaseDate()));
+            song.setGenre(songInfo.genre());
+            song.setYoutubeUrl(songInfo.youtubeUrl());
+            song.setLyrics(songInfo.lyrics());
 
             songRepository.save(song);
 
-            // 2. 앨범 이미지가 있으면 S3에 업로드
-            String albumImgUrl = null;
+            // 3. 앨범 이미지가 있으면 S3에 업로드
             if (albumImages != null && i < albumImages.size()) {
                 MultipartFile albumImage = albumImages.get(i);
                 if (albumImage != null && !albumImage.isEmpty()) {
-                    albumImgUrl = s3Uploader.upload(
+                    String albumImgUrl = s3Uploader.upload(
                             albumImage,
                             "song/" + song.getId() + "/album-img"
                     );
@@ -75,7 +75,7 @@ public class SongServiceImpl implements SongService {
                 }
             }
 
-            // 3. 응답 DTO 생성
+            // 4. 응답 DTO 생성
             createdSongs.add(new SongCreateResponseDto.SongDetail(
                     song.getId(),
                     song.getArtist(),
@@ -113,11 +113,17 @@ public class SongServiceImpl implements SongService {
                     PerformanceSong newPerformanceSong = PerformanceSong.builder()
                             .performance(performance)
                             .song(song)
-                            .orderInPerformance(null) // 나중에 순서 설정 가능
+                            .orderInPerformance(requestDto.orderInPerformance())
                             .likes(0)
                             .build();
                     return performanceSongsRepository.save(newPerformanceSong);
                 });
+
+        // orderInPerformance가 제공되었으면 업데이트
+        if (requestDto.orderInPerformance() != null) {
+            performanceSong.setOrderInPerformance(requestDto.orderInPerformance());
+            performanceSongsRepository.save(performanceSong);
+        }
 
         // 3. BandSession 생성
         BandSession bandSession = BandSession.builder()
