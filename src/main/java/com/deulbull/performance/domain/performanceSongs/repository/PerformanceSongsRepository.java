@@ -48,4 +48,7 @@ public interface PerformanceSongsRepository extends JpaRepository<PerformanceSon
         where ps.id = :performanceSongId
     """)
     Optional<CurrentSongProjection> findProjectionById(@Param("performanceSongId") Long performanceSongId);
+
+    // performanceId와 songId로 PerformanceSong 찾기
+    Optional<PerformanceSong> findByPerformanceIdAndSongId(Long performanceId, Long songId);
 }

@@ -1,9 +1,19 @@
 package com.deulbull.performance.domain.song.service;
 
+import com.deulbull.performance.domain.band.entity.BandSession;
+import com.deulbull.performance.domain.band.entity.Person;
+import com.deulbull.performance.domain.band.repository.BandSessionRepository;
+import com.deulbull.performance.domain.band.repository.PersonRepository;
+import com.deulbull.performance.domain.performance.entity.Performance;
+import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
+import com.deulbull.performance.domain.performanceSongs.entity.PerformanceSong;
+import com.deulbull.performance.domain.performanceSongs.repository.PerformanceSongsRepository;
 import com.deulbull.performance.domain.song.entity.Song;
 import com.deulbull.performance.domain.song.repository.SongRepository;
 import com.deulbull.performance.domain.song.web.dto.SongCreateRequestDto;
 import com.deulbull.performance.domain.song.web.dto.SongCreateResponseDto;
+import com.deulbull.performance.domain.song.web.dto.SongPersonConnectRequestDto;
+import com.deulbull.performance.domain.song.web.dto.SongPersonConnectResponseDto;
 import com.deulbull.performance.global.s3.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +31,10 @@ public class SongServiceImpl implements SongService {
 
     private final SongRepository songRepository;
     private final S3Uploader s3Uploader;
+    private final PersonRepository personRepository;
+    private final PerformanceRepository performanceRepository;
+    private final PerformanceSongsRepository performanceSongsRepository;
+    private final BandSessionRepository bandSessionRepository;
 
     @Override
     @Transactional
@@ -73,6 +87,58 @@ public class SongServiceImpl implements SongService {
         }
 
         return new SongCreateResponseDto(createdSongs.size(), createdSongs);
+    }
+
+    @Override
+    @Transactional
+    public SongPersonConnectResponseDto connectSongToPerson(SongPersonConnectRequestDto requestDto) {
+        // 1. Song, Performance, Person 엔티티 조회
+        Song song = songRepository.findById(requestDto.songId())
+                .orElseThrow(() -> new IllegalArgumentException("곡을 찾을 수 없습니다: " + requestDto.songId()));
+
+        Performance performance = performanceRepository.findById(requestDto.performanceId())
+                .orElseThrow(() -> new IllegalArgumentException("공연을 찾을 수 없습니다: " + requestDto.performanceId()));
+
+        Person person = personRepository.findById(requestDto.personId())
+                .orElseThrow(() -> new IllegalArgumentException("사람을 찾을 수 없습니다: " + requestDto.personId()));
+
+        // 2. PerformanceSong을 찾거나 생성
+        PerformanceSong performanceSong = performanceSongsRepository
+                .findByPerformanceIdAndSongId(requestDto.performanceId(), requestDto.songId())
+                .orElseGet(() -> {
+                    // 새로 생성
+                    PerformanceSong newPerformanceSong = PerformanceSong.builder()
+                            .performance(performance)
+                            .song(song)
+                            .orderInPerformance(null) // 나중에 순서 설정 가능
+                            .likes(0)
+                            .build();
+                    return performanceSongsRepository.save(newPerformanceSong);
+                });
+
+        // 3. BandSession 생성
+        BandSession bandSession = BandSession.builder()
+                .performanceSong(performanceSong)
+                .person(person)
+                .sessionType(requestDto.sessionType())
+                .band(null) // 일단 null
+                .build();
+
+        bandSessionRepository.save(bandSession);
+
+        // 4. 응답 DTO 생성
+        return SongPersonConnectResponseDto.builder()
+                .bandSessionId(bandSession.getId())
+                .performanceSongId(performanceSong.getId())
+                .songId(song.getId())
+                .songTitle(song.getTitle())
+                .songArtist(song.getArtist())
+                .personId(person.getId())
+                .personName(person.getName())
+                .sessionType(requestDto.sessionType())
+                .performanceId(performance.getId())
+                .performanceTitle(performance.getTitle())
+                .build();
     }
 
     private LocalDate parseDate(String dateStr) {
