@@ -2,13 +2,16 @@ package com.deulbull.performance.domain.song.service;
 
 import com.deulbull.performance.domain.band.entity.BandSession;
 import com.deulbull.performance.domain.band.entity.Person;
+import com.deulbull.performance.domain.band.exception.PersonNotFoundException;
 import com.deulbull.performance.domain.band.repository.BandSessionRepository;
 import com.deulbull.performance.domain.band.repository.PersonRepository;
 import com.deulbull.performance.domain.performance.entity.Performance;
+import com.deulbull.performance.domain.performance.exception.PerformanceNotFoundException;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
 import com.deulbull.performance.domain.performanceSongs.entity.PerformanceSong;
 import com.deulbull.performance.domain.performanceSongs.repository.PerformanceSongsRepository;
 import com.deulbull.performance.domain.song.entity.Song;
+import com.deulbull.performance.domain.song.exception.SongNotFoundException;
 import com.deulbull.performance.domain.song.repository.SongRepository;
 import com.deulbull.performance.domain.song.web.dto.SongCreateRequestDto;
 import com.deulbull.performance.domain.song.web.dto.SongCreateResponseDto;
@@ -94,13 +97,13 @@ public class SongServiceImpl implements SongService {
     public SongPersonConnectResponseDto connectSongToPerson(SongPersonConnectRequestDto requestDto) {
         // 1. Song, Performance, Person 엔티티 조회
         Song song = songRepository.findById(requestDto.songId())
-                .orElseThrow(() -> new IllegalArgumentException("곡을 찾을 수 없습니다: " + requestDto.songId()));
+                .orElseThrow(SongNotFoundException::new);
 
         Performance performance = performanceRepository.findById(requestDto.performanceId())
-                .orElseThrow(() -> new IllegalArgumentException("공연을 찾을 수 없습니다: " + requestDto.performanceId()));
+                .orElseThrow(PerformanceNotFoundException::new);
 
         Person person = personRepository.findById(requestDto.personId())
-                .orElseThrow(() -> new IllegalArgumentException("사람을 찾을 수 없습니다: " + requestDto.personId()));
+                .orElseThrow(PersonNotFoundException::new);
 
         // 2. PerformanceSong을 찾거나 생성
         PerformanceSong performanceSong = performanceSongsRepository
