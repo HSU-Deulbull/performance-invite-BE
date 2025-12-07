@@ -30,6 +30,7 @@ public class S3Uploader {
                             .bucket(bucket)
                             .key(key)
                             .contentType(file.getContentType())
+                            .cacheControl("max-age=2592000, public") 
                             .build(),
                     RequestBody.fromBytes(file.getBytes())
             );

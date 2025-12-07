@@ -1,5 +1,6 @@
 package com.deulbull.performance.domain.booking.service;
 
+import com.deulbull.performance.domain.admin.service.AdminMessageService;
 import com.deulbull.performance.domain.booking.entity.Booking;
 import com.deulbull.performance.domain.booking.exception.BookingDeadlinePassedException;
 import com.deulbull.performance.domain.booking.exception.BookingNotFoundException;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final PerformanceRepository performanceRepository;
+    private final AdminMessageService adminMessageService;
 
     @Override
     @Transactional
@@ -47,6 +49,18 @@ public class BookingServiceImpl implements BookingService {
                 .build();
 
         bookingRepository.save(booking);
+
+        // 4. 예매 확인 문자 발송
+        int totalPrice = (performance.getPreSaleFee() != null ? performance.getPreSaleFee() : 0) * requestDto.headCount();
+        String openchatUrl = performance.getOpenchatUrl() != null ? performance.getOpenchatUrl() : "오픈채팅 URL 미등록";
+
+        adminMessageService.sendBookingConfirmationMessage(
+                requestDto.phoneNumber(),
+                requestDto.name(),
+                requestDto.headCount(),
+                totalPrice,
+                openchatUrl
+        );
     }
 
     @Override

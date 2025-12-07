@@ -100,5 +100,52 @@ public class AdminMessageServiceImpl implements AdminMessageService {
                 + ", fail=" + failCount);
     }
 
+    // 사전예매 확인 문자 발송
+    @Override
+    public void sendBookingConfirmationMessage(String phoneNumber, String name, int headCount, int totalPrice, String openchatUrl) {
+        try {
+            DefaultMessageService smsService =
+                    NurigoApp.INSTANCE.initialize(apiKey, apiSecret, "https://api.coolsms.co.kr");
+
+            Message message = new Message();
+            message.setFrom(sender);
+            message.setTo(phoneNumber);
+//            String webUrl = "https://deulbull.netlify.app/";
+            // 문자 내용 작성
+//            String messageText = String.format(
+//                    "[들불] Ready to Fire 정기공연 사전예매 완료 안내\n\n" +
+//                    "예매자: %s님\n" +
+//                    "인원: %d명\n" +
+//                    "총 금액: %,d원\n\n" +
+//
+//                    "[공연 정보]\n" +
+//                    "- 날짜: 12/21(토) 17:00 공연\n" +
+//                    "입장: 16:30부터 관객 입장 시작\n" +
+//                    "- 장소: 홍대 프리버드 리부트\n\n" +
+//
+//                    "문의 및 공연 정보:\n%s\n\n" +
+//                    "Website: %s\n"+
+//
+//                    "예매해주셔서 감사합니다.\n" +
+//                    "공연 당일에 뵙겠습니다!\n\n",
+//                    name, headCount, totalPrice, openchatUrl, webUrl
+//            );
+
+            String messageText = String.format(
+                    "[들불] %s님 %s명 예매완료\n"+
+                    "일시: 12/21(일) 17시\n"+
+                    "문의: %s"
+            , name, headCount, openchatUrl );
+
+            message.setText(messageText);
+
+            smsService.sendOne(new SingleMessageSendingRequest(message));
+
+            System.out.println("[예매 확인 문자 발송 성공] to=" + phoneNumber + ", name=" + name);
+        } catch (Exception e) {
+            System.out.println("[예매 확인 문자 발송 실패] to=" + phoneNumber + ", error=" + e.getMessage());
+            // 문자 발송 실패해도 예매는 정상적으로 처리되도록 예외를 던지지 않음
+        }
+    }
 
 }
