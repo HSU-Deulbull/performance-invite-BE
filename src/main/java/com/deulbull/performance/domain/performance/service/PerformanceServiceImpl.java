@@ -75,6 +75,7 @@ public class PerformanceServiceImpl implements PerformanceService {
                 .accountHolder(requestDto.accountHolder())
                 .kakaopayUrl(requestDto.kakaopayUrl())
                 .naverpayUrl(requestDto.naverpayUrl())
+                .setlistUrl(requestDto.setlistUrl())
                 .currentSong(null) // 초기에는 현재 곡 없음
                 .build();
 
@@ -270,7 +271,7 @@ public class PerformanceServiceImpl implements PerformanceService {
                 ? performance.getCurrentSong().getOrderInPerformance()
                 : -1;
 
-        return new PerformanceSetlistResponse(currentSongId, setList);
+        return new PerformanceSetlistResponse(currentSongId, performance.getSetlistUrl(), setList);
     }
 
     // BandSession 생성 헬퍼 메서드

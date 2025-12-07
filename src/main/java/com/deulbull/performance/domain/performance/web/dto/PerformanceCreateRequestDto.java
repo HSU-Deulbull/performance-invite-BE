@@ -53,6 +53,8 @@ public record PerformanceCreateRequestDto(
 
         String naverpayUrl,
 
+        String setlistUrl,
+
         // PerformanceMoreLink 리스트
         @Valid
         List<MoreLinkCreateDto> moreLinks,
