@@ -52,8 +52,8 @@ class PerformanceSongsControllerTest {
         );
 
         var team = List.of(
-                new PerformanceSongsDetailResponseDto.Team(SessionType.VOCAL, "강범준", "beom_jun"),
-                new PerformanceSongsDetailResponseDto.Team(SessionType.DRUM,  "김주호", "juho_kim")
+                new PerformanceSongsDetailResponseDto.Team(SessionType.V, "강범준", "beom_jun"),
+                new PerformanceSongsDetailResponseDto.Team(SessionType.D,  "김주호", "juho_kim")
         );
 
         var dto = new PerformanceSongsDetailResponseDto(track, team);
@@ -74,7 +74,7 @@ class PerformanceSongsControllerTest {
     void getTrackDetail_notFound() throws Exception {
         Long performanceSongId = 9999L;
 
-        // ✅ 커스텀 예외를 던지도록 스텁 (메서드명 정확!)
+        // 커스텀 예외를 던지도록 스텁 
         Mockito.when(performanceSongsService.getPerformanceSongsDetail(eq(performanceSongId)))
                 .thenThrow(new PerformanceSongsNotFoundException());
 

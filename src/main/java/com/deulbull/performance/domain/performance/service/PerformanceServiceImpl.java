@@ -75,6 +75,7 @@ public class PerformanceServiceImpl implements PerformanceService {
                 .accountHolder(requestDto.accountHolder())
                 .kakaopayUrl(requestDto.kakaopayUrl())
                 .naverpayUrl(requestDto.naverpayUrl())
+                .setlistUrl(requestDto.setlistUrl())
                 .currentSong(null) // 초기에는 현재 곡 없음
                 .build();
 
@@ -270,7 +271,7 @@ public class PerformanceServiceImpl implements PerformanceService {
                 ? performance.getCurrentSong().getOrderInPerformance()
                 : -1;
 
-        return new PerformanceSetlistResponse(currentSongId, setList);
+        return new PerformanceSetlistResponse(currentSongId, performance.getSetlistUrl(), setList);
     }
 
     // BandSession 생성 헬퍼 메서드
@@ -282,7 +283,7 @@ public class PerformanceServiceImpl implements PerformanceService {
             for (String personName : membersDto.vocal()) {
                 Person person = getOrCreatePerson(personName);
                 bandSessions.add(BandSession.builder()
-                        .sessionType(SessionType.VOCAL)
+                        .sessionType(SessionType.V)
                         .performanceSong(performanceSong)
                         .band(null) // Band 정보는 현재 없음
                         .person(person)
@@ -295,7 +296,7 @@ public class PerformanceServiceImpl implements PerformanceService {
             for (String personName : membersDto.guitar1()) {
                 Person person = getOrCreatePerson(personName);
                 bandSessions.add(BandSession.builder()
-                        .sessionType(SessionType.FIRSTGUITAR)
+                        .sessionType(SessionType.G1)
                         .performanceSong(performanceSong)
                         .band(null)
                         .person(person)
@@ -308,7 +309,7 @@ public class PerformanceServiceImpl implements PerformanceService {
             for (String personName : membersDto.guitar2()) {
                 Person person = getOrCreatePerson(personName);
                 bandSessions.add(BandSession.builder()
-                        .sessionType(SessionType.SECONDGUITAR)
+                        .sessionType(SessionType.G2)
                         .performanceSong(performanceSong)
                         .band(null)
                         .person(person)
@@ -321,7 +322,7 @@ public class PerformanceServiceImpl implements PerformanceService {
             for (String personName : membersDto.bass()) {
                 Person person = getOrCreatePerson(personName);
                 bandSessions.add(BandSession.builder()
-                        .sessionType(SessionType.BASE)
+                        .sessionType(SessionType.B)
                         .performanceSong(performanceSong)
                         .band(null)
                         .person(person)
@@ -334,7 +335,7 @@ public class PerformanceServiceImpl implements PerformanceService {
             for (String personName : membersDto.drum()) {
                 Person person = getOrCreatePerson(personName);
                 bandSessions.add(BandSession.builder()
-                        .sessionType(SessionType.DRUM)
+                        .sessionType(SessionType.D)
                         .performanceSong(performanceSong)
                         .band(null)
                         .person(person)
@@ -347,7 +348,7 @@ public class PerformanceServiceImpl implements PerformanceService {
             for (String personName : membersDto.keyboard()) {
                 Person person = getOrCreatePerson(personName);
                 bandSessions.add(BandSession.builder()
-                        .sessionType(SessionType.PIANO)
+                        .sessionType(SessionType.K)
                         .performanceSong(performanceSong)
                         .band(null)
                         .person(person)

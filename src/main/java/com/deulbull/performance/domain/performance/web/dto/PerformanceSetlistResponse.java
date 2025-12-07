@@ -3,6 +3,7 @@ import java.util.List;
 
 public record PerformanceSetlistResponse(
         int nowPlayingOrder,
+        String setListUrl,
         List<PerformanceSetListDetail> setlist
 ) {
     public record PerformanceSetListDetail(
