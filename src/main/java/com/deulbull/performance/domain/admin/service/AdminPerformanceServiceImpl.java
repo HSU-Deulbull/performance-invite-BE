@@ -22,6 +22,7 @@ public class AdminPerformanceServiceImpl implements AdminPerformanceService {
     private final PerformanceSongsRepository performanceSongsRepository;
     private final PerformanceRepository performanceRepository;
 
+    // 현재 곡 조회
     @Override
     public AdminCurrentSongResponseDto getCurrentSong(Long adminId) {
         Admin admin = adminRepository.findById(adminId)

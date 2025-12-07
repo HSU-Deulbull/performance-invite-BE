@@ -54,7 +54,7 @@ public class AdminController {
         return SuccessResponse.ok(data);
     }
 
-    // 예매 정보 수정
+    // 예매 수정
     @PatchMapping("/bookings/{bookingId}")
     public SuccessResponse<Void> updateBooking(
             @AuthenticationPrincipal(errorOnInvalidType = false) CustomUserDetails userDetails,

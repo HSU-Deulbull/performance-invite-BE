@@ -11,4 +11,11 @@ public interface AdminMessageService {
 
     // 단체 문자 발송
     void sendBulkMessage(Long adminId, @Valid AdminMessageRequestDto adminMessageRequestDto);
+
+    // 사전예매 확인 문자 발송
+    void sendBookingConfirmationMessage(String phoneNumber, String name, int headCount, int totalPrice, String openchatUrl);
+
+    // 간단 문자 발송
+    void sendSimpleAdminMessage(String phoneNumber, String content);
+
 }

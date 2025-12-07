@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -371,5 +372,51 @@ public class PerformanceServiceImpl implements PerformanceService {
                             .build();
                     return personRepository.save(newPerson);
                 });
+    }
+
+    // 공연 이미지 교체
+    @Override
+    @Transactional
+    public void replacePerformanceImages(Long performanceId, List<MultipartFile> newImages) {
+
+        Performance performance = performanceRepository.findById(performanceId)
+                .orElseThrow(PerformanceNotFoundException::new);
+
+//        // 1) S3에서 해당 performance 폴더 전체 삭제
+        String folderPrefix = "performance/" + performanceId + "/";
+//        s3Uploader.deleteFolder(folderPrefix);
+
+        // 2) DB 기존 이미지 삭제
+        performanceImageRepository.deleteAllByPerformanceId(performanceId);
+
+        // 3) 새 이미지 업로드
+        List<String> newUrls = new ArrayList<>();
+
+        if (newImages != null && !newImages.isEmpty()) {
+            for (MultipartFile image : newImages) {
+                if (image == null || image.isEmpty()) continue;
+
+                String url = s3Uploader.upload(
+                        image,
+                        folderPrefix + UUID.randomUUID()  // index 대신 uuid 사용
+                );
+
+                newUrls.add(url);
+            }
+        }
+
+        // 4) DB 저장
+        if (!newUrls.isEmpty()) {
+            List<PerformanceImage> imgs = newUrls.stream()
+                    .map(url -> PerformanceImage.builder()
+                            .performance(performance)
+                            .imageUrl(url)
+                            .build())
+                    .toList();
+
+            performanceImageRepository.saveAll(imgs);
+        }
+
+        System.out.println("[공연 이미지 교체 완료] performanceId=" + performanceId);
     }
 }

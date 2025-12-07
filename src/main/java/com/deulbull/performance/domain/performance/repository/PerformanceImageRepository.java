@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface PerformanceImageRepository extends JpaRepository<PerformanceImage, Long> {
     List<PerformanceImage> findAllByPerformanceId(Long performance_id);
+
+    void deleteAllByPerformanceId(Long performanceId);
 }

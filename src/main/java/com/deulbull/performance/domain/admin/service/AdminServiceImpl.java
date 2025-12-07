@@ -70,6 +70,7 @@ public class AdminServiceImpl implements AdminService {
         );
     }
 
+    // 회원가입
     @Transactional
     @Override
     public AdminSignupResponseDto signup(AdminSignupRequestDto adminSignupRequestDto) {

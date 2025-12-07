@@ -20,7 +20,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // 특정 공연의 예매 목록 조회 - 이름 검색 (페이징)
     Page<Booking> findByPerformanceAndNameContaining(Performance performance, String name, Pageable pageable);
 
-    // 특정 공연의 총 예매 건수
+    // 특정 공연의 총 예매 건수 - 단순 엔티티 수 반환
     long countByPerformance(Performance performance);
 
     // 특정 공연의 총 예매 건수 - 이름 검색

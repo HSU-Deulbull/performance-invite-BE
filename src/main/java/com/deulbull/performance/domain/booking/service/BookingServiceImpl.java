@@ -1,5 +1,6 @@
 package com.deulbull.performance.domain.booking.service;
 
+import com.deulbull.performance.domain.admin.service.AdminMessageService;
 import com.deulbull.performance.domain.booking.entity.Booking;
 import com.deulbull.performance.domain.booking.exception.BookingDeadlinePassedException;
 import com.deulbull.performance.domain.booking.exception.BookingNotFoundException;
@@ -11,7 +12,10 @@ import com.deulbull.performance.domain.booking.web.dto.PreBookingInfoResponse;
 import com.deulbull.performance.domain.performance.entity.Performance;
 import com.deulbull.performance.domain.performance.exception.PerformanceNotFoundException;
 import com.deulbull.performance.domain.performance.repository.PerformanceRepository;
+import com.deulbull.performance.global.discord.DiscordWebhookSender;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +24,11 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+    private static final Logger log = LoggerFactory.getLogger(BookingServiceImpl.class);
     private final BookingRepository bookingRepository;
     private final PerformanceRepository performanceRepository;
+    private final AdminMessageService adminMessageService;
+    private final DiscordWebhookSender discordWebhookSender;
 
     @Override
     @Transactional
@@ -45,8 +52,51 @@ public class BookingServiceImpl implements BookingService {
                 .headCount(requestDto.headCount())
                 .performance(performance)
                 .build();
-
         bookingRepository.save(booking);
+
+        // 4. 콘솔 로그
+        int totalPrice = (performance.getPreSaleFee() != null ? performance.getPreSaleFee() : 0) * requestDto.headCount();
+        log.info("[예매 생성] performanceId={}, name={}, phone={}, headCount={}, paymentMethod={}, totalPrice={}",
+                performanceId,
+                requestDto.name(),
+                requestDto.phoneNumber(),
+                requestDto.headCount(),
+                requestDto.paymentMethod(),
+                totalPrice
+        );
+
+        Long totalBookingCount = bookingRepository.countByPerformance(performance);
+        // 5. discord 웹훅 알림
+        String discordMessage = String.format(
+                "[예매 추가]\n" +
+                        "이름: %s\n" +
+                        "연락처: %s\n" +
+                        "인원: %d명\n" +
+                        "총 금액: %,d원\n" +
+                        "마지막 선택한 결제 방식: %s\n" +
+                        "시간: %s\n"+
+                        "📍예매 누적 인원: %d명\n" +
+                        "=====================",
+                requestDto.name(),
+                requestDto.phoneNumber(),
+                requestDto.headCount(),
+                totalPrice,
+                requestDto.paymentMethod(),
+                booking.formatDateTimeWithDay(now),
+                totalBookingCount
+        );
+        discordWebhookSender.sendBooking(discordMessage);
+
+        // 6. 예매 확인 문자 발송
+        String openchatUrl = performance.getOpenchatUrl() != null ? performance.getOpenchatUrl() : "오픈채팅 URL 미등록";
+
+        adminMessageService.sendBookingConfirmationMessage(
+                requestDto.phoneNumber(),
+                requestDto.name(),
+                requestDto.headCount(),
+                totalPrice,
+                openchatUrl
+        );
     }
 
     @Override
@@ -80,6 +130,7 @@ public class BookingServiceImpl implements BookingService {
         );
     }
 
+    // 예매 수정
     @Override
     @Transactional
     public void updateBooking(Long bookingId, BookingUpdateRequestDto requestDto) {
@@ -87,11 +138,53 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(BookingNotFoundException::new);
 
-        // 2. 예매 정보 수정 (JPA 변경 감지로 자동 업데이트)
+        // 기존 값 (로그용)
+        String oldName = booking.getName();
+        String oldPhone = booking.getPhoneNumber();
+        int oldHeadCount = booking.getHeadCount();
+
+        // 변경 적용
         booking.setName(requestDto.name());
         booking.setPhoneNumber(requestDto.phoneNumber());
         booking.setHeadCount(requestDto.headCount());
+
+        // 변경 후 누적 인원
+        Integer totalBookingCount = bookingRepository.sumHeadCountByPerformance(booking.getPerformance());
+        LocalDateTime now = LocalDateTime.now();
+
+        // 디스코드 알림 메시지(관리자)
+        String discordMessage = String.format(
+                "[예매 수정]\n" +
+                        "예매 ID: %d\n\n" +
+                        "[변경 전]\n" +
+                        "- 이름: %s\n" +
+                        "- 연락처: %s\n" +
+                        "- 인원: %d명\n\n" +
+                        "[변경 후]\n" +
+                        "- 이름: %s\n" +
+                        "- 연락처: %s\n" +
+                        "- 인원: %d명\n\n" +
+                        "시간: %s\n" +
+                        "📍수정 후 예매 누적 인원: %d명\n" +
+                        "=====================",
+                bookingId,
+                oldName, oldPhone, oldHeadCount,
+                requestDto.name(), requestDto.phoneNumber(), requestDto.headCount(),
+                booking.formatDateTimeWithDay(now),
+                totalBookingCount
+        );
+
+        // 문자(예매자)
+        adminMessageService.sendSimpleAdminMessage(
+                requestDto.phoneNumber(),
+                String.format("[들불] 예매 수정\n%s: %d→%d명",
+                        requestDto.name(), oldHeadCount, requestDto.headCount())
+        );
+
+
+        discordWebhookSender.sendBooking(discordMessage);
     }
+
 
     @Override
     @Transactional
@@ -100,7 +193,41 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(BookingNotFoundException::new);
 
-        // 2. 예매 삭제
+        // 로그용 백업
+        String name = booking.getName();
+        String phone = booking.getPhoneNumber();
+        int headCount = booking.getHeadCount();
+
+        // 삭제
         bookingRepository.delete(booking);
+
+        // 삭제 후 누적 인원
+        int totalBookingCount = bookingRepository.sumHeadCountByPerformance(booking.getPerformance());
+        LocalDateTime now = LocalDateTime.now();
+
+        // 디스코드 메시지(관리자)
+        String discordMessage = String.format(
+                "[예매 삭제]\n" +
+                        "예매 ID: %d\n" +
+                        "이름: %s\n" +
+                        "연락처: %s\n" +
+                        "인원: %d명\n\n" +
+                        "시간: %s\n" +
+                        "📍삭제 후 예매 누적 인원: %d명\n" +
+                        "=====================",
+                bookingId,
+                name, phone, headCount,
+                booking.formatDateTimeWithDay(now),
+                totalBookingCount
+        );
+
+        // 문자(예매자)
+        adminMessageService.sendSimpleAdminMessage(
+                phone,
+                String.format("[들불] 예매 삭제\n%s, %d명", name, headCount)
+        );
+
+        discordWebhookSender.sendBooking(discordMessage);
     }
+
 }
