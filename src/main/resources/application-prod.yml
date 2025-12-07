@@ -54,6 +54,6 @@ cloud:
 
 discord:
   booking:
-    webhook: https://discord.com/api/webhooks/1447316731461632071/4JCAgOfLdQtxGVfH5cDyy3YkN5uOqq0PY5Tii1sUlNMmGxkvjAXQYfeYAn-YuU8YEU_E
+    webhook: ${DISCORD_BOOKING}
   log:
-    webhook: https://discord.com/api/webhooks/1447337264702296316/Pwz-S25PTezJOfbk_upb-eHWXSdgpmme4-NKJ5epqDNEgloS-JhuWXJ_NCxZmseXHOTe
+    webhook: ${DISCORD_LOG}
