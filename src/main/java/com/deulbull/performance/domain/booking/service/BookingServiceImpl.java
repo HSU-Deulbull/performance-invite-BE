@@ -62,9 +62,13 @@ public class BookingServiceImpl implements BookingService {
             throw new OpenChatUrlNotFoundException();
         }
 
+        // TODO: 추후 리팩토링 시 DB에 저장된 값으로 수정 필요
+        String entryStartTime = "16:30";
+
         // 3. 사전 예매 관련 정보 응답 반환
         return new PreBookingInfoResponse(
                 openchatUrl,
+                entryStartTime,
                 performance.getPreSaleEndTime() != null ? performance.getPreSaleEndTime().toString() : "",
                 performance.getPreSaleFee() != null ? performance.getPreSaleFee().toString() : "",
                 performance.getOnSiteFee() != null ? performance.getOnSiteFee().toString() : "",
