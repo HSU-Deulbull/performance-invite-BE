@@ -14,6 +14,8 @@ public record SongPersonConnectRequestDto(
         Long personId,
 
         @NotNull(message = "세션 타입은 필수입니다.")
-        SessionType sessionType
+        SessionType sessionType,
+
+        Integer orderInPerformance
 ) {
 }
