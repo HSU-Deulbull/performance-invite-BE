@@ -148,5 +148,25 @@ public class AdminMessageServiceImpl implements AdminMessageService {
         }
     }
 
+    // 간단 문자 발송
+    @Override
+    public void sendSimpleAdminMessage(String phoneNumber, String messageText) {
+        try {
+            DefaultMessageService smsService =
+                    NurigoApp.INSTANCE.initialize(apiKey, apiSecret, "https://api.coolsms.co.kr");
+
+            Message message = new Message();
+            message.setFrom(sender);
+            message.setTo(phoneNumber);
+            message.setText(messageText);
+
+            smsService.sendOne(new SingleMessageSendingRequest(message));
+
+            System.out.println("[예매 수정/삭제 문자 발송 성공] to=" + phoneNumber);
+        } catch (Exception e) {
+            System.out.println("[예매 수정/삭제 문자 발송 실패] to=" + phoneNumber + ", error=" + e.getMessage());
+            // 문자 발송 실패해도 예매는 정상적으로 처리되도록 예외를 던지지 않음
+        }
+    }
 
 }

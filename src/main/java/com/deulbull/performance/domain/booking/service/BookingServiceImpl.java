@@ -152,7 +152,7 @@ public class BookingServiceImpl implements BookingService {
         Integer totalBookingCount = bookingRepository.sumHeadCountByPerformance(booking.getPerformance());
         LocalDateTime now = LocalDateTime.now();
 
-        // 디스코드 알림 메시지
+        // 디스코드 알림 메시지(관리자)
         String discordMessage = String.format(
                 "[예매 수정]\n" +
                         "예매 ID: %d\n\n" +
@@ -173,6 +173,14 @@ public class BookingServiceImpl implements BookingService {
                 booking.formatDateTimeWithDay(now),
                 totalBookingCount
         );
+
+        // 문자(예매자)
+        adminMessageService.sendSimpleAdminMessage(
+                requestDto.phoneNumber(),
+                String.format("[들불] 예매 수정\n%s: %d→%d명",
+                        requestDto.name(), oldHeadCount, requestDto.headCount())
+        );
+
 
         discordWebhookSender.send(discordMessage);
     }
@@ -197,7 +205,7 @@ public class BookingServiceImpl implements BookingService {
         int totalBookingCount = bookingRepository.sumHeadCountByPerformance(booking.getPerformance());
         LocalDateTime now = LocalDateTime.now();
 
-        // 디스코드 메시지
+        // 디스코드 메시지(관리자)
         String discordMessage = String.format(
                 "[예매 삭제]\n" +
                         "예매 ID: %d\n" +
@@ -211,6 +219,12 @@ public class BookingServiceImpl implements BookingService {
                 name, phone, headCount,
                 booking.formatDateTimeWithDay(now),
                 totalBookingCount
+        );
+
+        // 문자(예매자)
+        adminMessageService.sendSimpleAdminMessage(
+                phone,
+                String.format("[들불] 예매 삭제\n%s, %d명", name, headCount)
         );
 
         discordWebhookSender.send(discordMessage);

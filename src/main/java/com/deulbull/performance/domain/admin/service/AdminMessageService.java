@@ -16,6 +16,6 @@ public interface AdminMessageService {
     void sendBookingConfirmationMessage(String phoneNumber, String name, int headCount, int totalPrice, String openchatUrl);
 
     // 간단 문자 발송
-    void sendSimpleAdminMessage(String content);
+    void sendSimpleAdminMessage(String phoneNumber, String content);
 
 }
