@@ -85,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
                 booking.formatDateTimeWithDay(now),
                 totalBookingCount
         );
-        discordWebhookSender.send(discordMessage);
+        discordWebhookSender.sendBooking(discordMessage);
 
         // 6. 예매 확인 문자 발송
         String openchatUrl = performance.getOpenchatUrl() != null ? performance.getOpenchatUrl() : "오픈채팅 URL 미등록";
@@ -182,7 +182,7 @@ public class BookingServiceImpl implements BookingService {
         );
 
 
-        discordWebhookSender.send(discordMessage);
+        discordWebhookSender.sendBooking(discordMessage);
     }
 
 
@@ -227,7 +227,7 @@ public class BookingServiceImpl implements BookingService {
                 String.format("[들불] 예매 삭제\n%s, %d명", name, headCount)
         );
 
-        discordWebhookSender.send(discordMessage);
+        discordWebhookSender.sendBooking(discordMessage);
     }
 
 }

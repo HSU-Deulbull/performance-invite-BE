@@ -12,17 +12,28 @@ import java.util.Map;
 public class DiscordWebhookSender {
 
     @Value("${discord.booking.webhook}")
-    private String webhookUrl;
+    private String bookingWebhook;
+
+    @Value("${discord.log.webhook}")
+    private String logWebhook;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public void send(String message) {
+    public void sendBooking(String message) {
+        sendToWebhook(bookingWebhook, message);
+    }
+
+    public void sendLog(String message) {
+        sendToWebhook(logWebhook, message);
+    }
+
+    private void sendToWebhook(String webhookUrl, String message) {
         try {
             Map<String, String> body = Map.of("content", message);
-
             restTemplate.postForObject(webhookUrl, body, String.class);
         } catch (Exception e) {
-            System.out.println("[디스코드 전송 실패] " + e.getMessage());
+            System.out.println("[디스코드 전송 실패] url=" + webhookUrl + ", error=" + e.getMessage());
         }
     }
 }
+

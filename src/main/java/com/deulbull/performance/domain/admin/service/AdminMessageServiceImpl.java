@@ -7,21 +7,30 @@ import com.deulbull.performance.domain.admin.web.dto.AdminMessageRequestDto;
 import com.deulbull.performance.domain.admin.web.dto.AdminMessageTargetCountResponseDto;
 import com.deulbull.performance.domain.booking.entity.Booking;
 import com.deulbull.performance.domain.booking.repository.BookingRepository;
+import com.deulbull.performance.domain.booking.service.BookingServiceImpl;
 import com.deulbull.performance.domain.performance.entity.Performance;
+import com.deulbull.performance.global.discord.DiscordWebhookSender;
 import net.nurigo.sdk.message.model.Message;
 import lombok.RequiredArgsConstructor;
 import net.nurigo.sdk.NurigoApp;
 import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import net.nurigo.sdk.message.service.DefaultMessageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class AdminMessageServiceImpl implements AdminMessageService {
+    private static final Logger log = LoggerFactory.getLogger(BookingServiceImpl.class);
     private final AdminRepository adminRepository;
     private final BookingRepository bookingRepository;
+    private final DiscordWebhookSender discordWebhookSender;
 
     @Value("${sms.api.key}")
     private String apiKey;
@@ -72,12 +81,22 @@ public class AdminMessageServiceImpl implements AdminMessageService {
         int successCount = 0;
         int failCount = 0;
 
-        // 문자 발송
+        // 이미 문자 보낸 전화번호 저장
+        Set<String> sentPhones = new HashSet<>();
+
         for (Booking booking : bookings) {
+
+            String phone = booking.getPhoneNumber();
+
+            // 이미 문자 보낸 전화번호면 skip
+            if (sentPhones.contains(phone)) {
+                continue;
+            }
+
             try {
                 Message message = new Message();
                 message.setFrom(sender);
-                message.setTo(booking.getPhoneNumber());
+                message.setTo(phone);
                 message.setText(adminMessageRequestDto.getMessage());
 
                 if ("LMS".equalsIgnoreCase(adminMessageRequestDto.getType())) {
@@ -85,19 +104,25 @@ public class AdminMessageServiceImpl implements AdminMessageService {
                 }
 
                 smsService.sendOne(new SingleMessageSendingRequest(message));
-                successCount++;
-            } catch (Exception e) {
 
-                System.out.println("문자 발송 실패 (" + booking.getPerformance() + "): " + e.getMessage());
+                sentPhones.add(phone); // 발송한 번호 기록
+                successCount++;
+
+            } catch (Exception e) {
+                System.out.println("문자 발송 실패 (phone=" + phone + "): " + e.getMessage());
                 failCount++;
             }
         }
 
-        // 테스트
-        System.out.println("[문자 발송 결과] adminId=" + adminId
-                + ", performanceId=" + performance.getId()
-                + ", success=" + successCount
-                + ", fail=" + failCount);
+        // 로그
+        String resultMessage = String.format(
+                "[문자 발송 결과]\n성공: %d명\n실패: %d명",
+                successCount, failCount
+        );
+
+        // 디스코드
+        log.info(resultMessage);
+        discordWebhookSender.sendLog(resultMessage);
     }
 
     // 사전예매 확인 문자 발송

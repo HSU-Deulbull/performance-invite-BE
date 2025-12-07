@@ -28,4 +28,5 @@ management:
 discord:
   booking:
     webhook: https://discord.com/api/webhooks/1447316749660848208/5F0SCRXsKyHk1A0ZzUq1VjYKCJBHI_f3h9b2TKecqbNs7ea55TmxuXkvYO_2L-oPRo9x
-
+  log:
+    webhook: https://discord.com/api/webhooks/1447329231842578636/HrnyrsQBkRCHW4rMqjGgNg9FmoRSy8TJK9zp7Yih7lkgFwB3tciKPX0EyVgbGctYQRmV
