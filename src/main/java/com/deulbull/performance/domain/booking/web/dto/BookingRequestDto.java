@@ -15,6 +15,7 @@ public record BookingRequestDto(
 
         @NotNull(message = "인원수는 필수 입력 항목입니다.")
         @Positive(message = "인원수는 1명 이상이어야 합니다.")
-        Integer headCount
+        Integer headCount,
+        String paymentMethod // 결제 방법(가장 마지막 선택한 방법)
 ) {
 }

@@ -382,9 +382,9 @@ public class PerformanceServiceImpl implements PerformanceService {
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new);
 
-        // 1) S3에서 해당 performance 폴더 전체 삭제
+//        // 1) S3에서 해당 performance 폴더 전체 삭제
         String folderPrefix = "performance/" + performanceId + "/";
-        s3Uploader.deleteFolder(folderPrefix);
+//        s3Uploader.deleteFolder(folderPrefix);
 
         // 2) DB 기존 이미지 삭제
         performanceImageRepository.deleteAllByPerformanceId(performanceId);

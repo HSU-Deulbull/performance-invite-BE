@@ -24,3 +24,8 @@ management:
     metrics:
       export:
         enabled: true
+
+discord:
+  booking:
+    webhook: https://discord.com/api/webhooks/1447316749660848208/5F0SCRXsKyHk1A0ZzUq1VjYKCJBHI_f3h9b2TKecqbNs7ea55TmxuXkvYO_2L-oPRo9x
+
