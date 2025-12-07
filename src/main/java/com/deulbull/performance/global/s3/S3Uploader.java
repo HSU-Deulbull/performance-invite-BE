@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import javax.imageio.IIOImage;
@@ -61,6 +62,41 @@ public class S3Uploader {
         } catch (IOException e) {
             throw new RuntimeException("WebP 변환 또는 S3 업로드 실패", e);
         }
+    }
+
+    // S3에서 파일 삭제
+    public void delete(String fileUrl) {
+        try {
+            // URL에서 키 추출
+            String key = extractKeyFromUrl(fileUrl);
+
+            s3Client.deleteObject(
+                    DeleteObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(key)
+                            .build()
+            );
+
+            System.out.println("[S3 삭제 성공] key=" + key);
+        } catch (Exception e) {
+            System.out.println("[S3 삭제 실패] url=" + fileUrl + ", error=" + e.getMessage());
+            // 삭제 실패해도 예외를 던지지 않음 (이미 삭제된 파일일 수 있음)
+        }
+    }
+
+    // URL에서 S3 키 추출
+    private String extractKeyFromUrl(String fileUrl) {
+        // https://bucket-name.s3.amazonaws.com/key 형식에서 key 추출
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            return "";
+        }
+
+        String[] parts = fileUrl.split(bucket + ".s3.amazonaws.com/");
+        if (parts.length > 1) {
+            return parts[1];
+        }
+
+        return "";
     }
 
     // WebP 변환 함수
