@@ -25,6 +25,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private static final Logger log = LoggerFactory.getLogger(BookingServiceImpl.class);
+    private static final Object BOOKING_LOCK = new Object(); // 명시적 락 객체
+    private static final int DUPLICATE_CHECK_SECONDS = 3; // 중복 예매 체크 시간 (초)
+
     private final BookingRepository bookingRepository;
     private final PerformanceRepository performanceRepository;
     private final AdminMessageService adminMessageService;
@@ -33,6 +36,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public void createBooking(Long performanceId, BookingRequestDto requestDto) {
+        synchronized (BOOKING_LOCK) {
         // 1. 공연 조회
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new);
@@ -45,7 +49,45 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingDeadlinePassedException();
         }
 
-        // 3. 예매 생성
+        // 3. 중복 예매 방지: 최근 N초 이내 동일 이름+전화번호 예매 체크
+        LocalDateTime fewSecondsAgo = now.minusSeconds(DUPLICATE_CHECK_SECONDS);
+        boolean isDuplicate = bookingRepository.existsRecentBooking(
+                performanceId,
+                requestDto.name(),
+                requestDto.phoneNumber(),
+                fewSecondsAgo
+        );
+
+        if (isDuplicate) {
+            // 중복 감지 시: DB 저장하지 않고 로깅과 디스코드 알림만 전송
+            log.warn("[중복 예매 감지] performanceId={}, name={}, phone={}, headCount={} - 3초 이내 중복 요청으로 저장하지 않음",
+                    performanceId,
+                    requestDto.name(),
+                    requestDto.phoneNumber(),
+                    requestDto.headCount()
+            );
+
+            String duplicateMessage = String.format(
+                    "## [⚠️중복 예매 감지 - 저장 안 됨]\n" +
+                            "이름: **%s**\n" +
+                            "연락처: %s\n" +
+                            "인원: %d명\n" +
+                            "시간: %s\n" +
+                            "사유: %d초 이내 중복 요청\n" +
+                            "==========================================",
+                    requestDto.name(),
+                    requestDto.phoneNumber(),
+                    requestDto.headCount(),
+                    now.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    DUPLICATE_CHECK_SECONDS
+            );
+            discordWebhookSender.sendBooking(duplicateMessage);
+
+            // TODO: 추후 프론트 측 중복 방지 완료 시 예외를 던져서 사용자에게 명확히 알리는 방식으로 변경 고려
+            return; // 성공 응답 반환 (프론트 에러 방지)
+        }
+
+        // 4. 예매 생성
         Booking booking = Booking.builder()
                 .name(requestDto.name())
                 .phoneNumber(requestDto.phoneNumber())
@@ -53,8 +95,9 @@ public class BookingServiceImpl implements BookingService {
                 .performance(performance)
                 .build();
         bookingRepository.save(booking);
+        bookingRepository.flush(); // 즉시 DB 반영 (중복 체크가 다음 요청에서 작동하도록)
 
-        // 4. 콘솔 로그
+        // 5. 콘솔 로그
         int totalPrice = (performance.getPreSaleFee() != null ? performance.getPreSaleFee() : 0) * requestDto.headCount();
         log.info("[예매 생성] performanceId={}, name={}, phone={}, headCount={}, paymentMethod={}, totalPrice={}",
                 performanceId,
@@ -66,17 +109,17 @@ public class BookingServiceImpl implements BookingService {
         );
 
         Long totalBookingCount = bookingRepository.countByPerformance(performance);
-        // 5. discord 웹훅 알림
+        // 6. discord 웹훅 알림
         String discordMessage = String.format(
-                "[예매 추가]\n" +
-                        "이름: %s\n" +
+                "## [예매 추가]\n" +
+                        "이름: **%s**\n" +
                         "연락처: %s\n" +
                         "인원: %d명\n" +
                         "총 금액: %,d원\n" +
                         "마지막 선택한 결제 방식: %s\n" +
                         "시간: %s\n"+
                         "📍예매 누적 인원: %d명\n" +
-                        "=====================",
+                        "==========================================",
                 requestDto.name(),
                 requestDto.phoneNumber(),
                 requestDto.headCount(),
@@ -87,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
         );
         discordWebhookSender.sendBooking(discordMessage);
 
-        // 6. 예매 확인 문자 발송
+        // 7. 예매 확인 문자 발송
         String openchatUrl = performance.getOpenchatUrl() != null ? performance.getOpenchatUrl() : "오픈채팅 URL 미등록";
 
         adminMessageService.sendBookingConfirmationMessage(
@@ -97,6 +140,7 @@ public class BookingServiceImpl implements BookingService {
                 totalPrice,
                 openchatUrl
         );
+        } // synchronized 블록 종료
     }
 
     @Override
