@@ -32,7 +32,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void createBooking(Long performanceId, BookingRequestDto requestDto) {
+    public synchronized void createBooking(Long performanceId, BookingRequestDto requestDto) {
         // 1. 공연 조회
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new);
@@ -65,7 +65,7 @@ public class BookingServiceImpl implements BookingService {
             );
 
             String duplicateMessage = String.format(
-                    "[### ⚠️중복 예매 감지 - 저장 안 됨]\n" +
+                    "## [⚠️중복 예매 감지 - 저장 안 됨]\n" +
                             "이름: **%s**\n" +
                             "연락처: %s\n" +
                             "인원: %d명\n" +
@@ -107,7 +107,7 @@ public class BookingServiceImpl implements BookingService {
         Long totalBookingCount = bookingRepository.countByPerformance(performance);
         // 5. discord 웹훅 알림
         String discordMessage = String.format(
-                "### [예매 추가]\n" +
+                "## [예매 추가]\n" +
                         "이름: **%s**\n" +
                         "연락처: %s\n" +
                         "인원: %d명\n" +
