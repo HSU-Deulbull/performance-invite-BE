@@ -84,7 +84,7 @@ public class BookingServiceImpl implements BookingService {
             return; // 성공 응답 반환 (프론트 에러 방지)
         }
 
-        // 3. 예매 생성
+        // 4. 예매 생성
         Booking booking = Booking.builder()
                 .name(requestDto.name())
                 .phoneNumber(requestDto.phoneNumber())
@@ -92,6 +92,7 @@ public class BookingServiceImpl implements BookingService {
                 .performance(performance)
                 .build();
         bookingRepository.save(booking);
+        bookingRepository.flush(); // 즉시 DB 반영 (중복 체크가 다음 요청에서 작동하도록)
 
         // 4. 콘솔 로그
         int totalPrice = (performance.getPreSaleFee() != null ? performance.getPreSaleFee() : 0) * requestDto.headCount();
