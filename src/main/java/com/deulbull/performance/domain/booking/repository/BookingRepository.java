@@ -35,4 +35,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Integer sumHeadCountByPerformanceAndNameContaining(@Param("performance") Performance performance, @Param("name") String name);
 
     List<Booking> findAllByPerformanceId(Long performanceId);
+
+    // 중복 예매 방지: 특정 시간 이후 같은 이름+전화번호로 예매한 내역이 있는지 확인
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.performance.id = :performanceId " +
+           "AND b.name = :name AND b.phoneNumber = :phoneNumber " +
+           "AND b.createdAt > :afterTime")
+    boolean existsRecentBooking(
+            @Param("performanceId") Long performanceId,
+            @Param("name") String name,
+            @Param("phoneNumber") String phoneNumber,
+            @Param("afterTime") java.time.LocalDateTime afterTime
+    );
 }
