@@ -71,7 +71,7 @@ public class BookingServiceImpl implements BookingService {
                             "인원: %d명\n" +
                             "시간: %s\n" +
                             "사유: %d초 이내 중복 요청\n" +
-                            "=====================",
+                            "==========================================",
                     requestDto.name(),
                     requestDto.phoneNumber(),
                     requestDto.headCount(),
@@ -115,7 +115,7 @@ public class BookingServiceImpl implements BookingService {
                         "마지막 선택한 결제 방식: %s\n" +
                         "시간: %s\n"+
                         "📍예매 누적 인원: %d명\n" +
-                        "=====================",
+                        "==========================================",
                 requestDto.name(),
                 requestDto.phoneNumber(),
                 requestDto.headCount(),
