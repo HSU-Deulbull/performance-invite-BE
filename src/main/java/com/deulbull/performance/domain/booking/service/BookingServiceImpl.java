@@ -25,6 +25,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private static final Logger log = LoggerFactory.getLogger(BookingServiceImpl.class);
+    private static final Object BOOKING_LOCK = new Object(); // 명시적 락 객체
+    private static final int DUPLICATE_CHECK_SECONDS = 3; // 중복 예매 체크 시간 (초)
+
     private final BookingRepository bookingRepository;
     private final PerformanceRepository performanceRepository;
     private final AdminMessageService adminMessageService;
@@ -32,7 +35,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public synchronized void createBooking(Long performanceId, BookingRequestDto requestDto) {
+    public void createBooking(Long performanceId, BookingRequestDto requestDto) {
+        synchronized (BOOKING_LOCK) {
         // 1. 공연 조회
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new);
@@ -45,9 +49,8 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingDeadlinePassedException();
         }
 
-        // 3. 중복 예매 방지: 최근 3초 이내 동일 이름+전화번호 예매 체크
-        int seconds = 3;
-        LocalDateTime fewSecondsAgo = now.minusSeconds(seconds);
+        // 3. 중복 예매 방지: 최근 N초 이내 동일 이름+전화번호 예매 체크
+        LocalDateTime fewSecondsAgo = now.minusSeconds(DUPLICATE_CHECK_SECONDS);
         boolean isDuplicate = bookingRepository.existsRecentBooking(
                 performanceId,
                 requestDto.name(),
@@ -76,7 +79,7 @@ public class BookingServiceImpl implements BookingService {
                     requestDto.phoneNumber(),
                     requestDto.headCount(),
                     now.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    seconds
+                    DUPLICATE_CHECK_SECONDS
             );
             discordWebhookSender.sendBooking(duplicateMessage);
 
@@ -94,7 +97,7 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
         bookingRepository.flush(); // 즉시 DB 반영 (중복 체크가 다음 요청에서 작동하도록)
 
-        // 4. 콘솔 로그
+        // 5. 콘솔 로그
         int totalPrice = (performance.getPreSaleFee() != null ? performance.getPreSaleFee() : 0) * requestDto.headCount();
         log.info("[예매 생성] performanceId={}, name={}, phone={}, headCount={}, paymentMethod={}, totalPrice={}",
                 performanceId,
@@ -106,7 +109,7 @@ public class BookingServiceImpl implements BookingService {
         );
 
         Long totalBookingCount = bookingRepository.countByPerformance(performance);
-        // 5. discord 웹훅 알림
+        // 6. discord 웹훅 알림
         String discordMessage = String.format(
                 "## [예매 추가]\n" +
                         "이름: **%s**\n" +
@@ -127,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
         );
         discordWebhookSender.sendBooking(discordMessage);
 
-        // 6. 예매 확인 문자 발송
+        // 7. 예매 확인 문자 발송
         String openchatUrl = performance.getOpenchatUrl() != null ? performance.getOpenchatUrl() : "오픈채팅 URL 미등록";
 
         adminMessageService.sendBookingConfirmationMessage(
@@ -137,6 +140,7 @@ public class BookingServiceImpl implements BookingService {
                 totalPrice,
                 openchatUrl
         );
+        } // synchronized 블록 종료
     }
 
     @Override
