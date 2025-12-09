@@ -45,6 +45,45 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingDeadlinePassedException();
         }
 
+        // 3. 중복 예매 방지: 최근 3초 이내 동일 이름+전화번호 예매 체크
+        int seconds = 3;
+        LocalDateTime fewSecondsAgo = now.minusSeconds(seconds);
+        boolean isDuplicate = bookingRepository.existsRecentBooking(
+                performanceId,
+                requestDto.name(),
+                requestDto.phoneNumber(),
+                fewSecondsAgo
+        );
+
+        if (isDuplicate) {
+            // 중복 감지 시: DB 저장하지 않고 로깅과 디스코드 알림만 전송
+            log.warn("[중복 예매 감지] performanceId={}, name={}, phone={}, headCount={} - 3초 이내 중복 요청으로 저장하지 않음",
+                    performanceId,
+                    requestDto.name(),
+                    requestDto.phoneNumber(),
+                    requestDto.headCount()
+            );
+
+            String duplicateMessage = String.format(
+                    "[### ⚠️중복 예매 감지 - 저장 안 됨]\n" +
+                            "이름: **%s**\n" +
+                            "연락처: %s\n" +
+                            "인원: %d명\n" +
+                            "시간: %s\n" +
+                            "사유: %d초 이내 중복 요청\n" +
+                            "=====================",
+                    requestDto.name(),
+                    requestDto.phoneNumber(),
+                    requestDto.headCount(),
+                    now.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    seconds
+            );
+            discordWebhookSender.sendBooking(duplicateMessage);
+
+            // TODO: 추후 프론트 측 중복 방지 완료 시 예외를 던져서 사용자에게 명확히 알리는 방식으로 변경 고려
+            return; // 성공 응답 반환 (프론트 에러 방지)
+        }
+
         // 3. 예매 생성
         Booking booking = Booking.builder()
                 .name(requestDto.name())
@@ -68,8 +107,8 @@ public class BookingServiceImpl implements BookingService {
         Long totalBookingCount = bookingRepository.countByPerformance(performance);
         // 5. discord 웹훅 알림
         String discordMessage = String.format(
-                "[예매 추가]\n" +
-                        "이름: %s\n" +
+                "### [예매 추가]\n" +
+                        "이름: **%s**\n" +
                         "연락처: %s\n" +
                         "인원: %d명\n" +
                         "총 금액: %,d원\n" +
