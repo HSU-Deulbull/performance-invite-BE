@@ -17,6 +17,9 @@ public class Booking extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version; // 낙관적 락을 위한 버전 필드
+
     @Column(nullable = false)
     private String name; // 예매자 이름
 
