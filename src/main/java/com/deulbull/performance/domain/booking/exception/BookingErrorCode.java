@@ -1,0 +1,22 @@
+package com.deulbull.performance.domain.booking.exception;
+
+import com.deulbull.performance.global.response.code.BaseResponseCode;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import static com.deulbull.performance.global.constant.StaticValue.BAD_REQUEST;
+import static com.deulbull.performance.global.constant.StaticValue.CONFLICT;
+import static com.deulbull.performance.global.constant.StaticValue.NOT_FOUND;
+
+@AllArgsConstructor
+@Getter
+public enum BookingErrorCode implements BaseResponseCode {
+    BOOKING_DEADLINE_PASSED("400", BAD_REQUEST, "예매가 마감되었습니다."),
+    BOOKING_NOT_FOUND("404", NOT_FOUND, "수정할 예매 정보를 찾을 수 없습니다."),
+    OPENCHAT_URL_NOT_FOUND("404", NOT_FOUND, "문의 링크가 등록되지 않았습니다."),
+    BOOKING_CONFLICT("409", CONFLICT, "동시에 예매가 진행되어 처리할 수 없습니다. 다시 시도해주세요.");
+
+    private final String code;
+    private final int httpStatus;
+    private final String message;
+}
