@@ -1,7 +1,9 @@
 package com.deulbull.performance.global.exception;
 
+import com.deulbull.performance.domain.booking.exception.BookingConflictException;
 import com.deulbull.performance.global.response.ErrorResponse;
 import com.deulbull.performance.global.response.code.GlobalErrorCode;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +73,13 @@ public class GlobalExceptionHandler {
         log.error("HttpMessageNotReadableException error", e);
         ErrorResponse error = ErrorResponse.of(GlobalErrorCode.BAD_REQUEST_ERROR);
         return ResponseEntity.status(error.getHttpStatus()).body(error);
+    }
+
+    /* 낙관적 락 충돌 에러 */
+    @ExceptionHandler(OptimisticLockException.class)
+    private ResponseEntity<ErrorResponse> handleOptimisticLockException(OptimisticLockException e) {
+        log.error("OptimisticLockException Error - 동시성 충돌 발생", e);
+        throw new BookingConflictException();
     }
 
     /* 비지니스 로직 에러 */
