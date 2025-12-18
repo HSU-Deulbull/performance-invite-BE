@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -25,7 +26,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private static final Logger log = LoggerFactory.getLogger(BookingServiceImpl.class);
-    private static final Object BOOKING_LOCK = new Object(); // 명시적 락 객체
     private static final int DUPLICATE_CHECK_SECONDS = 3; // 중복 예매 체크 시간 (초)
 
     private final BookingRepository bookingRepository;
@@ -34,9 +34,8 @@ public class BookingServiceImpl implements BookingService {
     private final DiscordWebhookSender discordWebhookSender;
 
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void createBooking(Long performanceId, BookingRequestDto requestDto) {
-        synchronized (BOOKING_LOCK) {
         // 1. 공연 조회
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(PerformanceNotFoundException::new);
@@ -109,6 +108,7 @@ public class BookingServiceImpl implements BookingService {
         );
 
         Long totalBookingCount = bookingRepository.countByPerformance(performance);
+        Integer totalHeadCount = bookingRepository.sumHeadCountByPerformance(performance);
         // 6. discord 웹훅 알림
         String discordMessage = String.format(
                 "## [예매 추가]\n" +
@@ -118,7 +118,7 @@ public class BookingServiceImpl implements BookingService {
                         "총 금액: %,d원\n" +
                         "마지막 선택한 결제 방식: %s\n" +
                         "시간: %s\n"+
-                        "📍예매 누적 인원: %d명\n" +
+                        "📍예매 누적 인원: %d명 (총 예매 수: %d건)\n" +
                         "==========================================",
                 requestDto.name(),
                 requestDto.phoneNumber(),
@@ -126,6 +126,7 @@ public class BookingServiceImpl implements BookingService {
                 totalPrice,
                 requestDto.paymentMethod(),
                 booking.formatDateTimeWithDay(now),
+                totalHeadCount,
                 totalBookingCount
         );
         discordWebhookSender.sendBooking(discordMessage);
@@ -140,7 +141,6 @@ public class BookingServiceImpl implements BookingService {
                 totalPrice,
                 openchatUrl
         );
-        } // synchronized 블록 종료
     }
 
     @Override
