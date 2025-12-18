@@ -109,6 +109,7 @@ public class BookingServiceImpl implements BookingService {
         );
 
         Long totalBookingCount = bookingRepository.countByPerformance(performance);
+        Integer totalHeadCount = bookingRepository.sumHeadCountByPerformance(performance);
         // 6. discord 웹훅 알림
         String discordMessage = String.format(
                 "## [예매 추가]\n" +
@@ -118,7 +119,7 @@ public class BookingServiceImpl implements BookingService {
                         "총 금액: %,d원\n" +
                         "마지막 선택한 결제 방식: %s\n" +
                         "시간: %s\n"+
-                        "📍예매 누적 인원: %d명\n" +
+                        "📍예매 누적 인원: %d명 (총 예매 수: %d건)\n" +
                         "==========================================",
                 requestDto.name(),
                 requestDto.phoneNumber(),
@@ -126,6 +127,7 @@ public class BookingServiceImpl implements BookingService {
                 totalPrice,
                 requestDto.paymentMethod(),
                 booking.formatDateTimeWithDay(now),
+                totalHeadCount,
                 totalBookingCount
         );
         discordWebhookSender.sendBooking(discordMessage);
